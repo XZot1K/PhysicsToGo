@@ -15,7 +15,7 @@ public class UpdateChecker
 
     public UpdateChecker(PhysicsToGo plugin)
     {
-        this.plugin = plugin;
+        UpdateChecker.plugin = plugin;
     }
 
     public boolean isOutdated()
@@ -28,8 +28,8 @@ public class UpdateChecker
             c.setRequestMethod("POST");
             c.getOutputStream().write(("key=98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4&resource"
                     + "=17181").getBytes("UTF-8"));
-            final String oldversion = plugin.getDescription().getVersion();
-            final String newversion = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine();
+            final String oldversion = plugin.getDescription().getVersion(),
+                    newversion = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine();
             if (!newversion.equalsIgnoreCase(oldversion))
             {
                 return true;

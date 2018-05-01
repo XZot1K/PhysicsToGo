@@ -2,7 +2,6 @@ package XZot1K.plugins.ptg;
 
 import XZot1K.plugins.ptg.core.Listeners;
 import XZot1K.plugins.ptg.core.PhysicsToGoCommand;
-import XZot1K.plugins.ptg.core.checkers.MCUpdate;
 import XZot1K.plugins.ptg.core.checkers.UpdateChecker;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.ChatColor;
@@ -26,7 +25,6 @@ public class PhysicsToGo extends JavaPlugin
         pluginInstance = this;
         updateChecker = new UpdateChecker(getPluginInstance());
         saveDefaultConfig();
-        MCUpdate mcUpdate = new MCUpdate(this, true);
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
 
@@ -43,7 +41,7 @@ public class PhysicsToGo extends JavaPlugin
     @Override
     public void onDisable()
     {
-        for (int i = -1; ++i < savedStates.size();)
+        for (int i = -1; ++i < savedStates.size(); )
         {
             BlockState state = savedStates.get(i);
             state.update(true, false);
@@ -55,7 +53,7 @@ public class PhysicsToGo extends JavaPlugin
     {
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
 
-        if (plugin == null || !(plugin instanceof WorldGuardPlugin))
+        if (!(plugin instanceof WorldGuardPlugin))
         {
             return null;
         }
