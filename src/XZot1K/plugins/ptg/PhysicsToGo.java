@@ -28,14 +28,17 @@ public class PhysicsToGo extends JavaPlugin
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
 
-        if (updateChecker.isOutdated())
+        try
         {
-            getServer().getConsoleSender().sendMessage(colorText("&cHey you! Yeah you! &cIt seems &ePhysicsToGo "
-                    + "&cis outdated you should go see the new update!"));
-        } else
-        {
-            getServer().getConsoleSender().sendMessage(colorText("&aGood news! &aIt seems &ePhysicsToGo &ais up to date!"));
-        }
+            if(pluginInstance.getConfig().getBoolean("update-checker"))
+            {
+                if (updateChecker.isOutdated())
+                    getServer().getConsoleSender().sendMessage(colorText("&cHey you! Yeah you! &cIt seems &ePhysicsToGo &cis " +
+                            "outdated you should go see the new update!"));
+                else
+                    getServer().getConsoleSender().sendMessage(colorText("&aGood news! &aIt seems &ePhysicsToGo &ais up to date!"));
+            }
+        }catch (Exception ignored) {}
     }
 
     @Override
@@ -52,12 +55,7 @@ public class PhysicsToGo extends JavaPlugin
     public WorldGuardPlugin getWorldGuard()
     {
         Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
-
-        if (!(plugin instanceof WorldGuardPlugin))
-        {
-            return null;
-        }
-
+        if (!(plugin instanceof WorldGuardPlugin)) return null;
         return (WorldGuardPlugin) plugin;
     }
 

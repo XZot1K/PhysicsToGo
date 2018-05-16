@@ -30,10 +30,7 @@ public class UpdateChecker
                     + "=17181").getBytes("UTF-8"));
             final String oldversion = plugin.getDescription().getVersion(),
                     newversion = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine();
-            if (!newversion.equalsIgnoreCase(oldversion))
-            {
-                return true;
-            }
+            if (!newversion.equalsIgnoreCase(oldversion)) return true;
         } catch (IOException ignored)
         {
         }

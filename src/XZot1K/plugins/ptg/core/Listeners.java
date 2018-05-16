@@ -20,7 +20,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -49,22 +48,6 @@ public class Listeners implements Listener
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onJoin(PlayerJoinEvent e)
-    {
-        if (e.getPlayer().isOp())
-        {
-            if (plugin.getUpdateChecker().isOutdated())
-            {
-                e.getPlayer().sendMessage(plugin.colorText("&cHey you! Yeah you! &cIt seems &ePhysicsToGo "
-                        + "&cis outdated you should go see the new update!"));
-            } else
-            {
-                e.getPlayer().sendMessage(plugin.colorText("&aGood news! &aIt seems &ePhysicsToGo &ais up to date!"));
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
     public void onExplodeEntity(EntityExplodeEvent e)
     {
         if (plugin.getConfig().getBoolean("per-world-support"))
@@ -80,33 +63,34 @@ public class Listeners implements Listener
         {
             RegionContainer container = plugin.getWorldGuard().getRegionContainer();
             RegionManager regions = container.get(e.getEntity().getWorld());
-            List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
-            for (int i = -1; ++i < regionList.size();)
+            if (regions != null)
             {
-                String r = regionList.get(i);
-                List<String> onlyList = plugin.getConfig().getStringList("only-worldguard-regions");
-                if (!(onlyList.size() <= 0) && !isRegionOnly(r))
+                List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
+                for (int i = -1; ++i < regionList.size(); )
                 {
-                    if (plugin.getConfig().getBoolean("cancel-event"))
+                    String r = regionList.get(i);
+                    List<String> onlyList = plugin.getConfig().getStringList("only-worldguard-regions");
+                    if (!(onlyList.size() <= 0) && !isRegionOnly(r))
                     {
-                        e.setCancelled(true);
-                    }
-                    return;
-                }
-
-                if (isRegionBlocked(r))
-                {
-                    ProtectedRegion region = regions.getRegion(r);
-                    com.sk89q.worldedit.Vector location = new com.sk89q.worldedit.Vector(
-                            e.getEntity().getLocation().getX(), e.getEntity().getLocation().getY(),
-                            e.getEntity().getLocation().getZ());
-                    if (region.contains(location))
-                    {
-                        if (plugin.getConfig().getBoolean("cancel-event"))
-                        {
-                            e.setCancelled(true);
-                        }
+                        if (plugin.getConfig().getBoolean("cancel-event")) e.setCancelled(true);
                         return;
+                    }
+
+                    if (isRegionBlocked(r))
+                    {
+                        ProtectedRegion region = regions.getRegion(r);
+                        if (region != null)
+                        {
+                            com.sk89q.worldedit.Vector location = new com.sk89q.worldedit.Vector(
+                                    e.getEntity().getLocation().getX(),
+                                    e.getEntity().getLocation().getY(),
+                                    e.getEntity().getLocation().getZ());
+                            if (region.contains(location))
+                            {
+                                if (plugin.getConfig().getBoolean("cancel-event")) e.setCancelled(true);
+                                return;
+                            }
+                        }
                     }
                 }
             }
@@ -119,7 +103,7 @@ public class Listeners implements Listener
         {
             int delay = plugin.getConfig().getInt("regeneration-delay-ticks");
             List<Block> blocks = new ArrayList<>(e.blockList());
-            for (int i = -1; ++i < blocks.size();)
+            for (int i = -1; ++i < blocks.size(); )
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
@@ -129,7 +113,7 @@ public class Listeners implements Listener
                 {
                     ItemStack item = new ItemStack(b.getType(), 1, b.getData());
                     List<Entity> entities = new ArrayList<>(e.getEntity().getNearbyEntities(5, 5, 5));
-                    for (int j = -1; ++j < entities.size();)
+                    for (int j = -1; ++j < entities.size(); )
                     {
                         Entity entity = entities.get(j);
                         if (entity instanceof Player)
@@ -151,10 +135,7 @@ public class Listeners implements Listener
                 boolean saveContainer = plugin.getConfig().getBoolean("save-container-contents");
                 boolean saveSign = plugin.getConfig().getBoolean("save-sign-information");
                 boolean convertTNT = plugin.getConfig().getBoolean("convert-tnt");
-                if (!dropItems)
-                {
-                    e.setYield((float) 0.0);
-                }
+                if (!dropItems) e.setYield((float) 0.0);
 
                 float offx = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-x")),
                         offy = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-y")),
@@ -174,21 +155,12 @@ public class Listeners implements Listener
                 if (b.getState() instanceof InventoryHolder)
                 {
                     InventoryHolder ih = (InventoryHolder) b.getState();
-                    if (saveContainer)
-                    {
-                        containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                    }
-                    if (!containerDrops)
-                    {
-                        ih.getInventory().clear();
-                    }
+                    if (saveContainer) containers.put(b.getLocation(), ih.getInventory().getContents().clone());
+                    if (!containerDrops) ih.getInventory().clear();
                 } else if (b.getState() instanceof Sign)
                 {
                     Sign sign = (Sign) b.getState();
-                    if (saveSign)
-                    {
-                        signs.put(b.getLocation(), sign.getLines());
-                    }
+                    if (saveSign) signs.put(b.getLocation(), sign.getLines());
                 }
 
                 if (plugin.getConfig().getBoolean("block-physics"))
@@ -197,21 +169,13 @@ public class Listeners implements Listener
                     {
                         try
                         {
-                            FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
-                                    b.getData());
+                            FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
                             fallingBlock.setDropItem(false);
                             fallingBlock.setVelocity(new Vector(offx, offy, offz));
                             FallingSands.add(fallingBlock.getUniqueId());
-                            if ((plugin.getConfig().getBoolean("block-physics-particles")) && (fallingBlock
-                                    .isOnGround()))
-                            {
-                                fallingBlock.getWorld().playEffect(fallingBlock.getLocation(), Effect.STEP_SOUND,
-                                        b.getType());
-                            }
-                        } catch (IllegalArgumentException ei)
-                        {
-                            ei.printStackTrace();
-                        }
+                            if ((plugin.getConfig().getBoolean("block-physics-particles")) && (fallingBlock.isOnGround()))
+                                fallingBlock.getWorld().playEffect(fallingBlock.getLocation(), Effect.STEP_SOUND, b.getType());
+                        } catch (IllegalArgumentException ignored) {}
                     }
                 }
 
@@ -259,26 +223,18 @@ public class Listeners implements Listener
                                     }
 
                                     if (regenEffect)
-                                    {
-                                        b.getLocation().getWorld().playEffect(b.getLocation(),
-                                                Effect.STEP_SOUND, b.getType(), 10);
-                                    }
+                                        b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType(), 10);
 
                                     if (!blockLocationMemory.isEmpty() || blockLocationMemory.contains(b.getLocation()))
-                                    {
                                         blockLocationMemory.remove(b.getLocation());
-                                    }
-                                } catch (IllegalArgumentException | IndexOutOfBoundsException ei)
+                                } catch (IllegalArgumentException | IndexOutOfBoundsException ignored)
                                 {
-                                    ei.printStackTrace();
                                 }
                             }, delay);
-                        } else
-                        {
-                            b.setType(Material.AIR);
-                        }
+                        } else b.setType(Material.AIR);
                     }
                 }
+
                 delay += plugin.getConfig().getInt("regeneration-speed");
             }
         }
@@ -300,14 +256,8 @@ public class Listeners implements Listener
             if (FallingSands.contains(e.getEntity().getUniqueId()))
             {
                 if (plugin.getConfig().getBoolean("block-physics-particles"))
-                {
-                    e.getEntity().getWorld().playEffect(e.getEntity().getLocation(),
-                            Effect.STEP_SOUND, e.getBlock().getType());
-                }
-                if (!plugin.getConfig().getBoolean("block-form"))
-                {
-                    e.setCancelled(true);
-                }
+                    e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType());
+                if (!plugin.getConfig().getBoolean("block-form")) e.setCancelled(true);
             }
         }
     }
@@ -315,58 +265,50 @@ public class Listeners implements Listener
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPhysics(BlockPhysicsEvent e)
     {
-        if (blockLocationMemory.contains(e.getBlock().getLocation()))
-        {
-            e.setCancelled(true);
-        }
+        if (blockLocationMemory.contains(e.getBlock().getLocation())) e.setCancelled(true);
     }
 
     private boolean isRegenerationWorld(String name)
     {
         List<String> worlds = plugin.getConfig().getStringList("regeneration-worlds");
-        for (int i = -1; ++i < worlds.size();)
+        for (int i = -1; ++i < worlds.size(); )
         {
             String world = worlds.get(i);
-            if (world.equalsIgnoreCase(name))
-            {
-                return true;
-            }
+            if (world.equalsIgnoreCase(name)) return true;
         }
+
         return false;
     }
 
-    public static boolean isRegionBlocked(String name)
+    private static boolean isRegionBlocked(String name)
     {
         List<String> regions = plugin.getConfig().getStringList("blocked-worldguard-regions");
-        for (int i = -1; ++i < regions.size();)
+        for (int i = -1; ++i < regions.size(); )
         {
             String r = regions.get(i);
-            if (r.equalsIgnoreCase(name))
-            {
-                return true;
-            }
+            if (r.equalsIgnoreCase(name)) return true;
         }
+
         return false;
     }
 
-    public static boolean isRegionOnly(String name)
+    private static boolean isRegionOnly(String name)
     {
         List<String> regions = plugin.getConfig().getStringList("only-worldguard-regions");
-        for (int i = -1; ++i < regions.size();)
+        for (int i = -1; ++i < regions.size(); )
         {
             String r = regions.get(i);
             if (r.equalsIgnoreCase(name))
-            {
                 return true;
-            }
         }
+
         return false;
     }
 
     private boolean isPerWorld(String name)
     {
         List<String> worlds = new ArrayList<>(plugin.getConfig().getStringList("worlds"));
-        for (int i = -1; ++i < worlds.size();)
+        for (int i = -1; ++i < worlds.size(); )
         {
             String world = worlds.get(i);
             if (world.equalsIgnoreCase(name))
@@ -380,14 +322,10 @@ public class Listeners implements Listener
     private boolean isInPhysicsBlacklist(String materialName)
     {
         List<String> materialNames = plugin.getConfig().getStringList("block-physic-blacklist");
-        for (int i = -1; ++i < materialNames.size();)
-        {
+        for (int i = -1; ++i < materialNames.size(); )
             if (materialNames.get(i).replace(" ", "_").replace("-", "_")
                     .equalsIgnoreCase(materialName.replace(" ", "_").replace("-", "_")))
-            {
                 return true;
-            }
-        }
 
         return false;
     }
@@ -395,14 +333,10 @@ public class Listeners implements Listener
     private boolean isInRegenerationBlacklist(String materialName)
     {
         List<String> materialNames = plugin.getConfig().getStringList("block-regeneration-blacklist");
-        for (int i = -1; ++i < materialNames.size();)
-        {
+        for (int i = -1; ++i < materialNames.size(); )
             if (materialNames.get(i).replace(" ", "_").replace("-", "_")
                     .equalsIgnoreCase(materialName.replace(" ", "_").replace("-", "_")))
-            {
                 return true;
-            }
-        }
 
         return false;
     }

@@ -1,3 +1,6 @@
+# Should the plugin look for updates on startup?
+update-checker: true
+
 # Should blocks be damaged? (Block Breaking)
 block-damage: true
 
