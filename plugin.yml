@@ -1,6 +1,6 @@
 name: PhysicsToGo
 author: XZot1K
-version: 1.5.1
+version: 1.5.2
 
 main: XZot1K.plugins.ptg.PhysicsToGo
 description: Listeners newer, re-done version of XZot1K's physics portion of his plugin Explode!

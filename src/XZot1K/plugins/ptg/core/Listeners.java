@@ -20,6 +20,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -37,6 +38,7 @@ public class Listeners implements Listener
     private final ArrayList<Location> blockLocationMemory;
     private final HashMap<Location, ItemStack[]> containers;
     private final HashMap<Location, String[]> signs;
+    private List<Block> blockList;
 
     public Listeners(PhysicsToGo plugin)
     {
@@ -45,6 +47,13 @@ public class Listeners implements Listener
         blockLocationMemory = new ArrayList<>();
         containers = new HashMap<>();
         signs = new HashMap<>();
+        blockList = new ArrayList<>();
+    }
+
+    @EventHandler
+    public void itemSpawn(ItemSpawnEvent e)
+    {
+        if (blockList.contains(e.getLocation().getBlock())) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -135,7 +144,7 @@ public class Listeners implements Listener
                 boolean saveContainer = plugin.getConfig().getBoolean("save-container-contents");
                 boolean saveSign = plugin.getConfig().getBoolean("save-sign-information");
                 boolean convertTNT = plugin.getConfig().getBoolean("convert-tnt");
-                if (!dropItems) e.setYield((float) 0.0);
+                if (!dropItems) blockList.add(b);
 
                 float offx = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-x")),
                         offy = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-y")),
@@ -238,6 +247,8 @@ public class Listeners implements Listener
                 delay += plugin.getConfig().getInt("regeneration-speed");
             }
         }
+
+        blockList.clear();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
