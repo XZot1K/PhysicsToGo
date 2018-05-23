@@ -3,54 +3,54 @@ package XZot1K.plugins.ptg.core.checkers;
 import XZot1K.plugins.ptg.PhysicsToGo;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 
 public class UpdateChecker
 {
 
-    public static PhysicsToGo plugin;
+    private PhysicsToGo pluginInstance;
+    private int projectId;
+    private URL checkURL;
+    private String newVersion;
 
-    public UpdateChecker(PhysicsToGo plugin)
+    public UpdateChecker(PhysicsToGo pluginInstance, int projectId)
     {
-        UpdateChecker.plugin = plugin;
-    }
-
-    public boolean isOutdated()
-    {
+        this.pluginInstance = pluginInstance;
+        this.newVersion = pluginInstance.getDescription().getVersion();
+        this.projectId = projectId;
         try
         {
-            final HttpURLConnection c = (HttpURLConnection) new URL("http://www.spigotmc.org/api/general.php")
-                    .openConnection();
-            c.setDoOutput(true);
-            c.setRequestMethod("POST");
-            c.getOutputStream().write(("key=98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4&resource"
-                    + "=17181").getBytes("UTF-8"));
-            final String oldversion = plugin.getDescription().getVersion(),
-                    newversion = new BufferedReader(new InputStreamReader(c.getInputStream())).readLine();
-            if (!newversion.equalsIgnoreCase(oldversion)) return true;
-        } catch (IOException ignored)
-        {
-        }
-        return false;
+            this.checkURL = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + projectId);
+        } catch (MalformedURLException ignored) {}
+    }
+
+    public int getProjectId()
+    {
+        return projectId;
     }
 
     public String getLatestVersion()
     {
+        return newVersion;
+    }
+
+    public String getResourceURL()
+    {
+        return "https://www.spigotmc.org/resources/" + projectId;
+    }
+
+    public boolean checkForUpdates()
+    {
         try
         {
-            final HttpURLConnection c = (HttpURLConnection) new URL("http://www.spigotmc.org/api/general.php")
-                    .openConnection();
-            c.setDoOutput(true);
-            c.setRequestMethod("POST");
-            c.getOutputStream().write(("key=98BE0FE67F88AB82B4C197FAF1DC3B69206EFDCC4D3B80FC83A00037510B99B4&resource"
-                    + "=17181").getBytes("UTF-8"));
-            return new BufferedReader(new InputStreamReader(c.getInputStream())).readLine();
-        } catch (IOException ex)
-        {
-            return UpdateChecker.plugin.getDescription().getVersion();
-        }
+            URLConnection con = checkURL.openConnection();
+            this.newVersion = new BufferedReader(new InputStreamReader(con.getInputStream())).readLine();
+            return !pluginInstance.getDescription().getVersion().equals(newVersion);
+        } catch (Exception ignored) {}
+        return true;
     }
+
 }

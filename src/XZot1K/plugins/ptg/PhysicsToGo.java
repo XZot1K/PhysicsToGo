@@ -23,22 +23,22 @@ public class PhysicsToGo extends JavaPlugin
     public void onEnable()
     {
         pluginInstance = this;
-        updateChecker = new UpdateChecker(getPluginInstance());
+        updateChecker = new UpdateChecker(getPluginInstance(), 17181);
         saveDefaultConfig();
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
 
         try
         {
-            if(pluginInstance.getConfig().getBoolean("update-checker"))
+            if (pluginInstance.getConfig().getBoolean("update-checker"))
             {
-                if (updateChecker.isOutdated())
-                    getServer().getConsoleSender().sendMessage(colorText("&cHey you! Yeah you! &cIt seems &ePhysicsToGo &cis " +
-                            "outdated you should go see the new update!"));
+                if (updateChecker.checkForUpdates())
+                    getServer().getConsoleSender().sendMessage(colorText("&cHey you! Yeah you! &cIt seems your version " +
+                            "of &ePhysicsToGo &cis outdated you should go see the new update!"));
                 else
-                    getServer().getConsoleSender().sendMessage(colorText("&aGood news! &aIt seems &ePhysicsToGo &ais up to date!"));
+                    getServer().getConsoleSender().sendMessage(colorText("&aGood news! &aIt seems your version of &ePhysicsToGo &ais up to date!"));
             }
-        }catch (Exception ignored) {}
+        } catch (Exception ignored) {}
     }
 
     @Override
