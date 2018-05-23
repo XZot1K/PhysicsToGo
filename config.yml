@@ -58,18 +58,6 @@ convert-tnt: true
 # What should the fuse be on the TNT?
 convert-tnt-fuse: 20
 
-# Should PhysicsToGo hook into WorldGuard?
-use-worldguard: false
-
-# Should the event be cancelled when in a WorldGuard region that doesn't allow explosions?
-cancel-event: true
-
-# Add the regions to this list that you don't want PhysicsToGo to work in.
-blocked-worldguard-regions: ["blocked_region"]
-
-# If this list has a region in it PhysicsToGo will ONLY work in that region period. (This ignores "blocked-worldguard-regions" and everything)
-only-worldguard-regions: []
-
 # Add blocks that you do not want physics to take effect on.
 # Latest Material List: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 block-physic-blacklist: ["MOB_SPAWNER"]
@@ -83,3 +71,14 @@ per-world-support: false
 # Add the worlds you want PhysicsToGo to work in below.
 worlds: ["world", "world_the_nether"]
 
+# Should PhysicsToGo hook into WorldGuard?
+use-worldguard: false
+
+# Should the event be cancelled when in a WorldGuard region that doesn't allow explosions?
+cancel-event: true
+
+# Add the regions to this list that you don't want PhysicsToGo to work in.
+blocked-worldguard-regions: ["blocked_region"]
+
+# If this list has a region in it PhysicsToGo will ONLY work in that region period. (This ignores "blocked-worldguard-regions" and everything)
+only-worldguard-regions: []

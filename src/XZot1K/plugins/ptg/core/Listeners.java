@@ -53,7 +53,8 @@ public class Listeners implements Listener
     @EventHandler
     public void itemSpawn(ItemSpawnEvent e)
     {
-        if (blockList.contains(e.getLocation().getBlock())) e.setCancelled(true);
+        if (blockList.contains(e.getLocation().getBlock())
+                || blockList.contains(e.getLocation())) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -144,7 +145,11 @@ public class Listeners implements Listener
                 boolean saveContainer = plugin.getConfig().getBoolean("save-container-contents");
                 boolean saveSign = plugin.getConfig().getBoolean("save-sign-information");
                 boolean convertTNT = plugin.getConfig().getBoolean("convert-tnt");
-                if (!dropItems) blockList.add(b);
+                if (!dropItems)
+                {
+                    e.setYield(0);
+                    blockList.add(b);
+                }
 
                 float offx = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-x")),
                         offy = -1.0F + (float) (Math.random() * plugin.getConfig().getInt("physics-offset-y")),
