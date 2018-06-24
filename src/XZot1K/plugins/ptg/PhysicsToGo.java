@@ -50,6 +50,8 @@ public class PhysicsToGo extends JavaPlugin
             state.update(true, false);
             state.update();
         }
+
+        savedStates.clear();
     }
 
     public WorldGuardPlugin getWorldGuard()
