@@ -25,33 +25,37 @@ public class PhysicsToGo extends JavaPlugin
         pluginInstance = this;
         updateChecker = new UpdateChecker(getPluginInstance(), 17181);
         saveDefaultConfig();
+
+        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cSetting up required requisites..."));
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
 
         try
         {
-            if (pluginInstance.getConfig().getBoolean("update-checker"))
-            {
-                if (updateChecker.checkForUpdates())
-                    getServer().getConsoleSender().sendMessage(colorText("&cHey you! Yeah you! &cIt seems your version " +
-                            "of &ePhysicsToGo &cis outdated you should go see the new update!"));
-                else
-                    getServer().getConsoleSender().sendMessage(colorText("&aGood news! &aIt seems your version of &ePhysicsToGo &ais up to date!"));
-            }
+            if (updateChecker.checkForUpdates())
+                getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cThere seems to be a new version on the PhysicsToGo page."));
+            else
+                getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aEverything is up to date!"));
         } catch (Exception ignored) {}
+        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aVersion &e" + getDescription().getVersion() + " &ahas been successfully enabled!"));
     }
 
     @Override
     public void onDisable()
     {
+        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cPlease wait while all saved block states are being placed..."));
         for (int i = -1; ++i < savedStates.size(); )
         {
-            BlockState state = savedStates.get(i);
-            state.update(true, false);
-            state.update();
+            try
+            {
+                BlockState state = savedStates.get(i);
+                state.update(true, false);
+                state.update();
+            } catch (Exception ignored) {}
         }
 
         savedStates.clear();
+        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aAll saved block states that were available have been restored!"));
     }
 
     public WorldGuardPlugin getWorldGuard()

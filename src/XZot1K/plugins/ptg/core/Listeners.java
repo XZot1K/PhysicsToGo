@@ -27,6 +27,9 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import us.forseth11.feudal.api.FeudalAPI;
+import us.forseth11.feudal.core.Feudal;
+import us.forseth11.feudal.kingdoms.Kingdom;
 
 import java.util.*;
 
@@ -50,13 +53,13 @@ public class Listeners implements Listener
         blockList = new ArrayList<>();
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void itemSpawn(ItemSpawnEvent e)
     {
         if (blockList.contains(e.getLocation().getBlock())) e.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBreak(BlockBreakEvent e)
     {
         if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
@@ -70,6 +73,7 @@ public class Listeners implements Listener
                 containerDrops = plugin.getConfig().getBoolean("block-break-options.container-drops"),
                 blockRegeneration = plugin.getConfig().getBoolean("block-break-options.block-regeneration");
         BlockState blockState = e.getBlock().getState();
+        plugin.savedStates.add(blockState);
 
         if (restorationMemory)
             if (blockState instanceof InventoryHolder)
@@ -85,28 +89,31 @@ public class Listeners implements Listener
 
         if (!dropItems)
         {
-            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType(), e.getBlock().getTypeId());
+            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
             e.getBlock().setType(Material.AIR);
-        } else e.getBlock().breakNaturally();
+        }
 
         if (!blockLocationMemory.contains(e.getBlock().getLocation()))
             blockLocationMemory.add(e.getBlock().getLocation());
         if (blockRegeneration)
         {
-            plugin.savedStates.add(e.getBlock().getState());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
                 try
                 {
                     blockState.update(true, false);
                     blockState.update();
+                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
                         {
                             InventoryHolder ih = (InventoryHolder) blockState;
                             if (!containers.isEmpty() && containers.containsKey(e.getBlock().getLocation()))
+                            {
                                 ih.getInventory().setContents(containers.get(e.getBlock().getLocation()));
+                                containers.remove(e.getBlock().getLocation());
+                            }
                         } else if (blockState instanceof Sign)
                         {
                             Sign sign = (Sign) blockState;
@@ -120,19 +127,18 @@ public class Listeners implements Listener
                                 }
 
                                 sign.update();
+                                signs.remove(e.getBlock().getLocation());
                             }
                         }
 
                     blockLocationMemory.remove(e.getBlock().getLocation());
-                    containers.remove(e.getBlock().getLocation());
-                    signs.remove(e.getBlock().getLocation());
                     plugin.savedStates.remove(blockState);
                 } catch (IllegalArgumentException | IndexOutOfBoundsException ignored) {}
             }, delay);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockExplode(BlockExplodeEvent e)
     {
         if (isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())) return;
@@ -243,7 +249,7 @@ public class Listeners implements Listener
         blockList.clear();
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onExplodeEntity(EntityExplodeEvent e)
     {
         if (isInList("block-break-options.blacklisted-worlds", e.getLocation().getWorld().getName())) return;
@@ -354,7 +360,7 @@ public class Listeners implements Listener
         blockList.clear();
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void EntityChangeBlockEvent(EntityChangeBlockEvent e)
     {
         if (e.getEntity() instanceof FallingBlock)
@@ -362,12 +368,12 @@ public class Listeners implements Listener
             if (FallingSands.contains(e.getEntity().getUniqueId()))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType());
-                e.setCancelled(true);
+                if (plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
             }
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockPhysics(BlockPhysicsEvent e)
     {
         if (blockLocationMemory.contains(e.getBlock().getLocation())) e.setCancelled(true);
@@ -425,6 +431,12 @@ public class Listeners implements Listener
                     }
                 }
             }
+        }
+
+        if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
+        {
+            Kingdom kingdom = Feudal.getAPI().getKingdom(location);
+            if (kingdom != null) return false;
         }
 
         return true;
