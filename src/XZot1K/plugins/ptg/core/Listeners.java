@@ -306,7 +306,7 @@ public class Listeners implements Listener
                     {
                         FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
                         fallingBlock.setDropItem(false);
-                        fallingBlock.setVelocity(new Vector(1, 1, 1));
+                        fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
                         FallingSands.add(fallingBlock.getUniqueId());
                     } catch (IllegalArgumentException ignored) {}
                 }
@@ -367,8 +367,10 @@ public class Listeners implements Listener
         {
             if (FallingSands.contains(e.getEntity().getUniqueId()))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType());
-                if (plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
+                if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
+                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
+                    ((FallingBlock) e.getEntity()).setDropItem(false);
             }
         }
     }
