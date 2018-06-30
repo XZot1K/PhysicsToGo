@@ -8,45 +8,45 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
-import us.forseth11.feudal.api.FeudalAPI;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 public class Listeners implements Listener
 {
 
     private static PhysicsToGo plugin;
-    private final ArrayList<UUID> FallingSands;
-    private final ArrayList<Location> blockLocationMemory;
-    private final HashMap<Location, ItemStack[]> containers;
-    private final HashMap<Location, String[]> signs;
+
+    private ArrayList<Location> blockLocationMemory;
+    private HashMap<Location, ItemStack[]> containers;
+    private HashMap<Location, String[]> signs;
     private List<Block> blockList;
 
     public Listeners(PhysicsToGo plugin)
     {
         Listeners.plugin = plugin;
-        FallingSands = new ArrayList<>();
         blockLocationMemory = new ArrayList<>();
         containers = new HashMap<>();
         signs = new HashMap<>();
@@ -60,12 +60,43 @@ public class Listeners implements Listener
     }
 
     @EventHandler
+    public void onPlace(BlockPlaceEvent e)
+    {
+        if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
+                || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
+                || isBlacklistedMaterial("block-place-options.effected-material-blacklist", e.getBlock())
+                || !passedHooks(e.getBlock().getLocation(), true, false)) return;
+        if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel"))
+        {
+            e.setCancelled(true);
+            return;
+        }
+
+        int delay = plugin.getConfig().getInt("block-place-options.block-reversion-options.delay");
+        boolean blockReversion = plugin.getConfig().getBoolean("block-place-options.block-reversion");
+
+        if (blockReversion)
+        {
+            Material previousMaterial = e.getBlockReplacedState().getType();
+            byte previousData = e.getBlockReplacedState().getRawData();
+            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
+            {
+                Material placedMaterial = e.getBlock().getType();
+                e.getBlock().setType(previousMaterial);
+                e.getBlock().setData(previousData);
+                e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
+                        (e.getBlock().getType() == Material.AIR) ? placedMaterial.getId() : e.getBlock().getTypeId());
+            }, delay);
+        }
+    }
+
+    @EventHandler
     public void onBreak(BlockBreakEvent e)
     {
         if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isBlacklistedMaterial("block-break-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation())) return;
+                || !passedHooks(e.getBlock().getLocation(), false, false)) return;
 
         int delay = plugin.getConfig().getInt("block-break-options.block-regeneration-options.delay");
         boolean dropItems = plugin.getConfig().getBoolean("block-break-options.block-drops"),
@@ -73,9 +104,9 @@ public class Listeners implements Listener
                 containerDrops = plugin.getConfig().getBoolean("block-break-options.container-drops"),
                 blockRegeneration = plugin.getConfig().getBoolean("block-break-options.block-regeneration");
         BlockState blockState = e.getBlock().getState();
-        plugin.savedStates.add(blockState);
+        if (blockRegeneration) plugin.savedStates.add(blockState);
 
-        if (restorationMemory)
+        if (blockRegeneration && restorationMemory)
             if (blockState instanceof InventoryHolder)
             {
                 InventoryHolder ih = (InventoryHolder) blockState;
@@ -93,10 +124,10 @@ public class Listeners implements Listener
             e.getBlock().setType(Material.AIR);
         }
 
-        if (!blockLocationMemory.contains(e.getBlock().getLocation()))
-            blockLocationMemory.add(e.getBlock().getLocation());
         if (blockRegeneration)
         {
+            if (!blockLocationMemory.contains(e.getBlock().getLocation()))
+                blockLocationMemory.add(e.getBlock().getLocation());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
                 try
@@ -141,7 +172,7 @@ public class Listeners implements Listener
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent e)
     {
-        if (isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())) return;
+        if (isInList("explosive-options.blacklisted-worlds", e.getBlock().getWorld().getName())) return;
         if (!plugin.getConfig().getBoolean("explosive-options.block-damage")) e.blockList().clear();
         else
         {
@@ -152,14 +183,15 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation()))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation(), true, true))
                     continue;
 
-                plugin.savedStates.add(state);
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
                         restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory"),
                         containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics");
+                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
+                if (blockRegeneration) plugin.savedStates.add(state);
 
                 if (!dropItems)
                 {
@@ -177,7 +209,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (restorationMemory)
+                if (blockRegeneration && restorationMemory)
                     if (state instanceof InventoryHolder)
                     {
                         InventoryHolder ih = (InventoryHolder) state;
@@ -196,11 +228,12 @@ public class Listeners implements Listener
                         FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
                         fallingBlock.setDropItem(false);
                         fallingBlock.setVelocity(new Vector(1, 1, 1));
-                        FallingSands.add(fallingBlock.getUniqueId());
+                        fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                        plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
                     } catch (IllegalArgumentException ignored) {}
                 }
 
-                if (plugin.getConfig().getBoolean("explosive-options.block-regeneration"))
+                if (blockRegeneration)
                 {
                     if (!blockLocationMemory.contains(b.getLocation())) blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
@@ -252,7 +285,8 @@ public class Listeners implements Listener
     @EventHandler
     public void onExplodeEntity(EntityExplodeEvent e)
     {
-        if (isInList("block-break-options.blacklisted-worlds", e.getLocation().getWorld().getName())) return;
+        if (isInList("explosive-options.blacklisted-worlds", e.getLocation().getWorld().getName())
+                || isInList("explosive-options.entity-explosion-blacklist", e.getEntity().getType().name())) return;
         if (!plugin.getConfig().getBoolean("explosive-options.block-damage")) e.blockList().clear();
         else
         {
@@ -263,14 +297,15 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation()))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation(), true, true))
                     continue;
 
-                plugin.savedStates.add(state);
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
                         restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory"),
                         containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics");
+                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
+                if (blockRegeneration) plugin.savedStates.add(state);
 
                 if (!dropItems)
                 {
@@ -288,7 +323,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (restorationMemory)
+                if (blockRegeneration && restorationMemory)
                     if (state instanceof InventoryHolder)
                     {
                         InventoryHolder ih = (InventoryHolder) state;
@@ -307,11 +342,12 @@ public class Listeners implements Listener
                         FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
                         fallingBlock.setDropItem(false);
                         fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
-                        FallingSands.add(fallingBlock.getUniqueId());
+                        fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                        plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
                     } catch (IllegalArgumentException ignored) {}
                 }
 
-                if (plugin.getConfig().getBoolean("explosive-options.block-regeneration"))
+                if (blockRegeneration)
                 {
                     if (!blockLocationMemory.contains(b.getLocation())) blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
@@ -365,7 +401,7 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (FallingSands.contains(e.getEntity().getUniqueId()))
+            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
@@ -412,9 +448,9 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location)
+    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal)
     {
-        if (plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
+        if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
             RegionContainer container = plugin.getWorldGuard().getRegionContainer();
             RegionManager regions = container.get(location.getWorld());
@@ -435,10 +471,10 @@ public class Listeners implements Listener
             }
         }
 
-        if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
+        if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
         {
             Kingdom kingdom = Feudal.getAPI().getKingdom(location);
-            if (kingdom != null) return false;
+            return kingdom == null;
         }
 
         return true;

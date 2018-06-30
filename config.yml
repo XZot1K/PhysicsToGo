@@ -39,6 +39,9 @@ explosive-options:
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
   - "world_the_end"
+  # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
+  entity-explosion-blacklist:
+  - "CREEPER"
 
 block-break-options:
   # If this is enabled PTG will listen when a player breaks a block and perform effects.
@@ -61,5 +64,24 @@ block-break-options:
   # (Note: The items will be restored inside the container if the above option is enabled.)
   container-drops: false
   # The worlds inside the list below will not be effected by any player block damage modified by PTG.
+  blacklisted-worlds:
+  - "world_the_end"
+
+block-place-options:
+  # If this is enabled PTG will listen when a player places a block and perform effects.
+  block-place-event: false
+  # If this is enabled block placing will be cancelled. (Note: This will avoid the 'block-reversion' feature.)
+  block-place-cancel: false
+  # When blocks are damaged by players, should the blocks be regenerated?
+  block-reversion: true
+  # Here is where you can customize options that effect the block regeneration.
+  block-reversion-options:
+    # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # Materials inside the list below will be avoided by any reversion or physics effects involved with block placing.
+  effected-material-blacklist:
+  - "OBSIDIAN:0"
+  - "BEDROCK:0"
+  # The worlds inside the list below will not be effected by any player placement modifications by PTG.
   blacklisted-worlds:
   - "world_the_end"
