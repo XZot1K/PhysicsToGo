@@ -32,7 +32,6 @@ import us.forseth11.feudal.kingdoms.Kingdom;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 public class Listeners implements Listener
 {
@@ -75,7 +74,8 @@ public class Listeners implements Listener
         int delay = plugin.getConfig().getInt("block-place-options.block-reversion-options.delay");
         boolean blockReversion = plugin.getConfig().getBoolean("block-place-options.block-reversion");
 
-        if (blockReversion)
+        int heightLimit = plugin.getConfig().getInt("block-place-options.reversion-height");
+        if (blockReversion && (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))
         {
             Material previousMaterial = e.getBlockReplacedState().getType();
             byte previousData = e.getBlockReplacedState().getRawData();
@@ -85,7 +85,7 @@ public class Listeners implements Listener
                 e.getBlock().setType(previousMaterial);
                 e.getBlock().setData(previousData);
                 e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
-                        (e.getBlock().getType() == Material.AIR) ? placedMaterial.getId() : e.getBlock().getTypeId());
+                        (e.getBlock().getType() == Material.AIR) ? placedMaterial.getId() : e.getBlock().getType().getId());
             }, delay);
         }
     }
@@ -120,11 +120,12 @@ public class Listeners implements Listener
 
         if (!dropItems)
         {
-            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
+            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
             e.getBlock().setType(Material.AIR);
         }
 
-        if (blockRegeneration)
+        int heightLimit = plugin.getConfig().getInt("block-break-options.regeneration-height");
+        if (blockRegeneration && (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))
         {
             if (!blockLocationMemory.contains(e.getBlock().getLocation()))
                 blockLocationMemory.add(e.getBlock().getLocation());
@@ -134,7 +135,7 @@ public class Listeners implements Listener
                 {
                     blockState.update(true, false);
                     blockState.update();
-                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
+                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -233,7 +234,8 @@ public class Listeners implements Listener
                     } catch (IllegalArgumentException ignored) {}
                 }
 
-                if (blockRegeneration)
+                int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
+                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
                 {
                     if (!blockLocationMemory.contains(b.getLocation())) blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
@@ -242,7 +244,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getTypeId());
+                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -347,7 +349,8 @@ public class Listeners implements Listener
                     } catch (IllegalArgumentException ignored) {}
                 }
 
-                if (blockRegeneration)
+                int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
+                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
                 {
                     if (!blockLocationMemory.contains(b.getLocation())) blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
@@ -356,7 +359,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getTypeId());
+                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -403,7 +406,7 @@ public class Listeners implements Listener
         {
             if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getTypeId());
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
                     ((FallingBlock) e.getEntity()).setDropItem(false);

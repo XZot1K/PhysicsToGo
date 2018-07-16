@@ -42,6 +42,8 @@ explosive-options:
   # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
   entity-explosion-blacklist:
   - "CREEPER"
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  regeneration-height: -1
 
 block-break-options:
   # If this is enabled PTG will listen when a player breaks a block and perform effects.
@@ -66,6 +68,8 @@ block-break-options:
   # The worlds inside the list below will not be effected by any player block damage modified by PTG.
   blacklisted-worlds:
   - "world_the_end"
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  regeneration-height: -1
 
 block-place-options:
   # If this is enabled PTG will listen when a player places a block and perform effects.
@@ -85,3 +89,6 @@ block-place-options:
   # The worlds inside the list below will not be effected by any player placement modifications by PTG.
   blacklisted-worlds:
   - "world_the_end"
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  # (Note: For block placing blocks will not be 'reverted' unless below/equal to the defined height below.)
+  reversion-height: -1
