@@ -23,10 +23,12 @@ public class PhysicsToGo extends JavaPlugin
     public List<BlockState> savedStates;
     public ArrayList<UUID> savedFallingBlocks;
     private UpdateChecker updateChecker;
+    private String serverVersion;
 
     @Override
     public void onEnable()
     {
+        setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
         savedStates = new ArrayList<>();
         savedFallingBlocks = new ArrayList<>();
         pluginInstance = this;
@@ -103,5 +105,15 @@ public class PhysicsToGo extends JavaPlugin
     public UpdateChecker getUpdateChecker()
     {
         return updateChecker;
+    }
+
+    public String getServerVersion()
+    {
+        return serverVersion;
+    }
+
+    private void setServerVersion(String serverVersion)
+    {
+        this.serverVersion = serverVersion;
     }
 }

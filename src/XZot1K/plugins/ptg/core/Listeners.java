@@ -24,6 +24,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 import us.forseth11.feudal.core.Feudal;
@@ -83,9 +84,9 @@ public class Listeners implements Listener
             {
                 Material placedMaterial = e.getBlock().getType();
                 e.getBlock().setType(previousMaterial);
-                e.getBlock().setData(previousData);
-                e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
-                        (e.getBlock().getType() == Material.AIR) ? placedMaterial.getId() : e.getBlock().getType().getId());
+                if (!plugin.getServerVersion().equalsIgnoreCase("v1_13_R1"))
+                    e.getBlock().setData(previousData);
+                e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType() == Material.AIR ? 0 : 1);
             }, delay);
         }
     }
@@ -120,7 +121,7 @@ public class Listeners implements Listener
 
         if (!dropItems)
         {
-            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
             e.getBlock().setType(Material.AIR);
         }
 
@@ -135,7 +136,7 @@ public class Listeners implements Listener
                 {
                     blockState.update(true, false);
                     blockState.update();
-                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -244,7 +245,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, 1);
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -359,7 +360,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getLocation().getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, 1);
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -406,7 +407,7 @@ public class Listeners implements Listener
         {
             if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, 1);
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
                     ((FallingBlock) e.getEntity()).setDropItem(false);
