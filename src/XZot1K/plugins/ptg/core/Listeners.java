@@ -24,7 +24,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 import us.forseth11.feudal.core.Feudal;
@@ -37,7 +36,7 @@ import java.util.List;
 public class Listeners implements Listener
 {
 
-    private static PhysicsToGo plugin;
+    private PhysicsToGo plugin;
 
     private ArrayList<Location> blockLocationMemory;
     private HashMap<Location, ItemStack[]> containers;
@@ -46,7 +45,7 @@ public class Listeners implements Listener
 
     public Listeners(PhysicsToGo plugin)
     {
-        Listeners.plugin = plugin;
+        this.plugin = plugin;
         blockLocationMemory = new ArrayList<>();
         containers = new HashMap<>();
         signs = new HashMap<>();
@@ -86,7 +85,9 @@ public class Listeners implements Listener
                 e.getBlock().setType(previousMaterial);
                 if (!plugin.getServerVersion().equalsIgnoreCase("v1_13_R1"))
                     e.getBlock().setData(previousData);
-                e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType() == Material.AIR ? 0 : 1);
+                e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
+                        e.getBlock().getType() == Material.AIR ? placedMaterial.getId() :
+                                e.getBlock().getType().getId());
             }, delay);
         }
     }
@@ -136,7 +137,8 @@ public class Listeners implements Listener
                 {
                     blockState.update(true, false);
                     blockState.update();
-                    e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
+                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
+                            e.getBlock().getType().getId());
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -227,7 +229,8 @@ public class Listeners implements Listener
                 {
                     try
                     {
-                        FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
+                        FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
+                                b.getData());
                         fallingBlock.setDropItem(false);
                         fallingBlock.setVelocity(new Vector(1, 1, 1));
                         fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
@@ -245,7 +248,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, 1);
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -320,8 +323,8 @@ public class Listeners implements Listener
                 {
                     b.setType(Material.AIR);
                     state.setType(Material.AIR);
-                    Entity primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
-                    ((TNTPrimed) primed).setFuseTicks(80);
+                    TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
+                    primed.setFuseTicks(80);
                     plugin.savedStates.remove(state);
                     continue;
                 }
@@ -344,7 +347,8 @@ public class Listeners implements Listener
                     {
                         FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(), b.getData());
                         fallingBlock.setDropItem(false);
-                        fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
+                        fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ?
+                                0 : 1));
                         fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
                         plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
                     } catch (IllegalArgumentException ignored) {}
@@ -360,7 +364,7 @@ public class Listeners implements Listener
                         {
                             state.update(true, false);
                             state.update();
-                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, 1);
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                             if (restorationMemory)
                                 if (state instanceof InventoryHolder)
@@ -405,9 +409,11 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()))
+            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G" +
+                    "={'FALLING_BLOCK'}"))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, 1);
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND,
+                        e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form")) e.setCancelled(true);
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
                     ((FallingBlock) e.getEntity()).setDropItem(false);
@@ -439,7 +445,8 @@ public class Listeners implements Listener
                 if (line.contains(":"))
                 {
                     String[] lineArgs = line.split(":");
-                    Material material = Material.getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-", "_"));
+                    Material material = Material.getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-",
+                            "_"));
                     short data = (short) Integer.parseInt(lineArgs[1]);
                     if (block.getType() == material && block.getData() == data) return true;
                     continue;
@@ -467,7 +474,8 @@ public class Listeners implements Listener
                     ProtectedRegion region = regions.getRegion(r);
                     if (region != null)
                     {
-                        com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(), location.getY(), location.getZ());
+                        com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
+                                location.getY(), location.getZ());
                         if (region.contains(loc) && isInList("hooks-options.world-guard.region-whitelist", r))
                             return false;
                     }
