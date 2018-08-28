@@ -1,9 +1,21 @@
 package XZot1K.plugins.ptg.core;
 
 import XZot1K.plugins.ptg.PhysicsToGo;
+import com.massivecraft.factions.*;
+import com.massivecraft.factions.entity.BoardColl;
+import com.massivecraft.factions.entity.FactionColl;
+import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.massivecore.ps.PS;
 import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.wasteofplastic.askyblock.ASkyBlockAPI;
+import com.wasteofplastic.askyblock.Island;
+import me.angeschossen.lands.Lands;
+import me.angeschossen.lands.api.LandsAPI;
+import me.angeschossen.lands.api.objects.LandChunk;
+import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,6 +37,7 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
@@ -64,7 +77,7 @@ public class Listeners implements Listener
         if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isBlacklistedMaterial("block-place-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), true, false)) return;
+                || !passedHooks(e.getBlock().getLocation(), true, false, true, true, true, true)) return;
         if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel"))
         {
             e.setCancelled(true);
@@ -98,7 +111,7 @@ public class Listeners implements Listener
         if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isBlacklistedMaterial("block-break-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), false, false)) return;
+                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true)) return;
 
         int delay = plugin.getConfig().getInt("block-break-options.block-regeneration-options.delay");
         boolean dropItems = plugin.getConfig().getBoolean("block-break-options.block-drops"),
@@ -187,7 +200,8 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation(), true, true))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
+                        || !passedHooks(b.getLocation(), true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -303,7 +317,8 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b) || !passedHooks(b.getLocation(), true, true))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
+                        || !passedHooks(b.getLocation(), true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -409,8 +424,7 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G" +
-                    "={'FALLING_BLOCK'}"))
+            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'FALLING_BLOCK'}"))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND,
                         e.getBlock().getType().getId());
@@ -459,7 +473,7 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal)
+    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useFactions, boolean useGP, boolean useASkyBlock, boolean useLands)
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
@@ -474,8 +488,7 @@ public class Listeners implements Listener
                     ProtectedRegion region = regions.getRegion(r);
                     if (region != null)
                     {
-                        com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
-                                location.getY(), location.getZ());
+                        com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(), location.getY(), location.getZ());
                         if (region.contains(loc) && isInList("hooks-options.world-guard.region-whitelist", r))
                             return false;
                     }
@@ -487,6 +500,60 @@ public class Listeners implements Listener
         {
             Kingdom kingdom = Feudal.getAPI().getKingdom(location);
             return kingdom == null;
+        }
+
+        if (useFactions && plugin.getConfig().getBoolean("hooks-options.factions.use-factions"))
+        {
+            if (plugin.getConfig().getBoolean("hooks-options.factions.factions-uuid"))
+            {
+                try
+                {
+                    FLocation fLocation = new FLocation(location);
+                    com.massivecraft.factions.Faction factionAtLocation = Board.getInstance().getFactionAt(fLocation);
+                    if (factionAtLocation != null && !(factionAtLocation.isWilderness() || factionAtLocation.isWarZone()))
+                        return false;
+                } catch (Exception ignored) {}
+            } else
+            {
+                try
+                {
+                    com.massivecraft.factions.entity.Faction factionAtLocation = BoardColl.get().getFactionAt(PS.valueOf(location));
+                    if (factionAtLocation != null && !(factionAtLocation.getComparisonName().equals(FactionColl.get().getSafezone().getComparisonName())
+                            || factionAtLocation.getComparisonName().equals(FactionColl.get().getWarzone().getComparisonName())))
+                        return false;
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (useASkyBlock && plugin.getConfig().getBoolean("hooks-options.askyblock.use-askyblock"))
+        {
+            Plugin aSkyBlock = plugin.getServer().getPluginManager().getPlugin("ASkyBlock");
+            if (aSkyBlock != null)
+            {
+                Island island = ASkyBlockAPI.getInstance().getIslandAt(location);
+                if (island != null) return false;
+            }
+        }
+
+        if (useGP && plugin.getConfig().getBoolean("hooks-options.grief-preventation.use-grief-preventation"))
+        {
+            Plugin griefPrevention = plugin.getServer().getPluginManager().getPlugin("GriefPrevention");
+            if (griefPrevention != null)
+            {
+                Claim claimAtLocation = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
+                if (claimAtLocation != null) return false;
+            }
+        }
+
+        if (useLands && plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
+        {
+            Plugin lands = plugin.getServer().getPluginManager().getPlugin("Lands");
+            if (lands != null)
+            {
+                LandChunk landChunk = Lands.getLandsAPI().getLandChunk(location);
+                if (landChunk != null && landChunk.getLand() != null && landChunk.getLand().getOwnerUUID() != null)
+                    return false;
+            }
         }
 
         return true;
