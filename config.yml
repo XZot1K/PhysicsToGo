@@ -74,14 +74,6 @@ block-break-options:
   block-regeneration-options:
     # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
     delay: 20
-    # These materials will be fixed when regenerating broken blocks.
-    # (Note: This feature is targeted at double block plants, add/remove needed/unwanted materials)
-  stack-fixing-materials:
-  - "TALL_GRASS"
-  - "ROSE_BUSH"
-  - "PEONY"
-  - "LARGE_FERN"
-  - "LILAC"
   # Materials inside the list below will be avoided by any regeneration or physics effects involved with block breaking.
   effected-material-blacklist:
   - "OBSIDIAN:0"

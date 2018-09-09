@@ -161,30 +161,9 @@ public class Listeners implements Listener
                     blockState.update(true, false);
                     e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
                             e.getBlock().getType().getId());
-
-                    Block relative1 = e.getBlock().getRelative(BlockFace.DOWN), relative2 = e.getBlock().getRelative(BlockFace.UP);
-                    e.getPlayer().sendMessage(relative1.getType().name());
-
-                    boolean relative1Fixed = false;
-                    if (isStackFixingMaterial(e.getBlock()))
-                    {
-                        if (relative1.getType() != e.getBlock().getType() && relative1.getType() == Material.AIR)
-                        {
-                            relative1.setType(e.getBlock().getType());
-                            relative1.getState().update(true, false);
-                            e.getBlock().setType(relative1.getType());
-                            e.getBlock().getState().update(true, false);
-                            relative1Fixed = true;
-                        }
-
-                        if (!relative1Fixed && relative2.getType() != e.getBlock().getType() && relative2.getType() == Material.AIR)
-                        {
-                            relative2.setType(e.getBlock().getType());
-                            relative2.getState().update(true, false);
-                            e.getBlock().setType(relative2.getType());
-                            e.getBlock().getState().update(true, false);
-                        }
-                    }
+                   Block relative1 = e.getBlock().getRelative(BlockFace.DOWN), relative2 = e.getBlock().getRelative(BlockFace.UP);
+                   relative1.getState().update(true, false);
+                   relative2.getState().update(true, false);
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -615,18 +594,4 @@ public class Listeners implements Listener
 
         return true;
     }
-
-    private boolean isStackFixingMaterial(Block block)
-    {
-        List<String> materialList = plugin.getConfig().getStringList("block-break-options.stack-fixing-materials");
-        for (int j = -1; ++j < materialList.size(); )
-        {
-            String materialName = materialList.get(j);
-            if (materialName.toUpperCase().replace(" ", "_").replace("-", "_").equalsIgnoreCase(block.getType().name()))
-                return true;
-        }
-
-        return false;
-    }
-
 }
