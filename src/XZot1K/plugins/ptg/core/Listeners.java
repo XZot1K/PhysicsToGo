@@ -1,11 +1,18 @@
 package XZot1K.plugins.ptg.core;
 
 import XZot1K.plugins.ptg.PhysicsToGo;
+import com.bekvon.bukkit.residence.Residence;
+import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.massivecraft.factions.*;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.massivecore.ps.PS;
+import com.palmergames.bukkit.towny.Towny;
+import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
+import com.palmergames.bukkit.towny.object.Town;
+import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.palmergames.bukkit.towny.regen.TownyRegenAPI;
 import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -20,6 +27,7 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
@@ -43,6 +51,7 @@ import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -77,7 +86,7 @@ public class Listeners implements Listener
         if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isBlacklistedMaterial("block-place-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), true, false, true, true, true, true)) return;
+                || !passedHooks(e.getBlock().getLocation(), true, false, true, true, true, true, true, true)) return;
         if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel"))
         {
             e.setCancelled(true);
@@ -96,7 +105,7 @@ public class Listeners implements Listener
             {
                 Material placedMaterial = e.getBlock().getType();
                 e.getBlock().setType(previousMaterial);
-                if (!plugin.getServerVersion().equalsIgnoreCase("v1_13_R1"))
+                if (!plugin.getServerVersion().equalsIgnoreCase("v1_13_R1") || !plugin.getServerVersion().equalsIgnoreCase("v1_13_R2"))
                     e.getBlock().setData(previousData);
                 e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
                         e.getBlock().getType() == Material.AIR ? placedMaterial.getId() :
@@ -111,13 +120,14 @@ public class Listeners implements Listener
         if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isBlacklistedMaterial("block-break-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true)) return;
+                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true)) return;
 
         int delay = plugin.getConfig().getInt("block-break-options.block-regeneration-options.delay");
         boolean dropItems = plugin.getConfig().getBoolean("block-break-options.block-drops"),
                 restorationMemory = plugin.getConfig().getBoolean("block-break-options.block-restoration-memory"),
                 containerDrops = plugin.getConfig().getBoolean("block-break-options.container-drops"),
                 blockRegeneration = plugin.getConfig().getBoolean("block-break-options.block-regeneration");
+
         BlockState blockState = e.getBlock().getState();
         if (blockRegeneration) plugin.savedStates.add(blockState);
 
@@ -149,9 +159,32 @@ public class Listeners implements Listener
                 try
                 {
                     blockState.update(true, false);
-                    blockState.update();
                     e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
                             e.getBlock().getType().getId());
+
+                    Block relative1 = e.getBlock().getRelative(BlockFace.DOWN), relative2 = e.getBlock().getRelative(BlockFace.UP);
+                    e.getPlayer().sendMessage(relative1.getType().name());
+
+                    boolean relative1Fixed = false;
+                    if (isStackFixingMaterial(e.getBlock()))
+                    {
+                        if (relative1.getType() != e.getBlock().getType() && relative1.getType() == Material.AIR)
+                        {
+                            relative1.setType(e.getBlock().getType());
+                            relative1.getState().update(true, false);
+                            e.getBlock().setType(relative1.getType());
+                            e.getBlock().getState().update(true, false);
+                            relative1Fixed = true;
+                        }
+
+                        if (!relative1Fixed && relative2.getType() != e.getBlock().getType() && relative2.getType() == Material.AIR)
+                        {
+                            relative2.setType(e.getBlock().getType());
+                            relative2.getState().update(true, false);
+                            e.getBlock().setType(relative2.getType());
+                            e.getBlock().getState().update(true, false);
+                        }
+                    }
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -201,7 +234,7 @@ public class Listeners implements Listener
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
                 if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
-                        || !passedHooks(b.getLocation(), true, true, true, true, true, true))
+                        || !passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -318,7 +351,7 @@ public class Listeners implements Listener
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
                 if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
-                        || !passedHooks(b.getLocation(), true, true, true, true, true, true))
+                        || !passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -473,7 +506,8 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useFactions, boolean useGP, boolean useASkyBlock, boolean useLands)
+    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useFactions, boolean useGP,
+                                boolean useASkyBlock, boolean useLands, boolean useResidence, boolean useTowny)
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
@@ -556,7 +590,43 @@ public class Listeners implements Listener
             }
         }
 
+        if (useResidence && plugin.getConfig().getBoolean("hooks-options.residence.use-residence"))
+        {
+            Plugin residence = plugin.getServer().getPluginManager().getPlugin("Residence");
+            if (residence != null)
+            {
+                ClaimedResidence res = Residence.getInstance().getResidenceManager().getByLoc(location);
+                if (res != null) return false;
+            }
+        }
+
+        if (useTowny && plugin.getConfig().getBoolean("hooks-options.towny.use-towny"))
+        {
+            Plugin towny = plugin.getServer().getPluginManager().getPlugin("Towny");
+            if (towny != null)
+            {
+                try
+                {
+                    Town town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
+                    if (town != null) return false;
+                } catch (Exception ignored) {}
+            }
+        }
+
         return true;
+    }
+
+    private boolean isStackFixingMaterial(Block block)
+    {
+        List<String> materialList = plugin.getConfig().getStringList("block-break-options.stack-fixing-materials");
+        for (int j = -1; ++j < materialList.size(); )
+        {
+            String materialName = materialList.get(j);
+            if (materialName.toUpperCase().replace(" ", "_").replace("-", "_").equalsIgnoreCase(block.getType().name()))
+                return true;
+        }
+
+        return false;
     }
 
 }
