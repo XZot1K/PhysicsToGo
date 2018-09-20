@@ -3,24 +3,18 @@ package XZot1K.plugins.ptg.core;
 import XZot1K.plugins.ptg.PhysicsToGo;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
-import com.massivecraft.factions.*;
+import com.massivecraft.factions.Board;
+import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
-import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.massivecore.ps.PS;
-import com.palmergames.bukkit.towny.Towny;
-import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.WorldCoord;
-import com.palmergames.bukkit.towny.regen.TownyRegenAPI;
 import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
-import me.angeschossen.lands.Lands;
-import me.angeschossen.lands.api.LandsAPI;
-import me.angeschossen.lands.api.objects.LandChunk;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
@@ -30,7 +24,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
@@ -47,11 +40,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
+import org.kingdoms.constants.land.Land;
+import org.kingdoms.constants.land.SimpleChunkLocation;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -161,9 +155,9 @@ public class Listeners implements Listener
                     blockState.update(true, false);
                     e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
                             e.getBlock().getType().getId());
-                   Block relative1 = e.getBlock().getRelative(BlockFace.DOWN), relative2 = e.getBlock().getRelative(BlockFace.UP);
-                   relative1.getState().update(true, false);
-                   relative2.getState().update(true, false);
+                    Block relative1 = e.getBlock().getRelative(BlockFace.DOWN), relative2 = e.getBlock().getRelative(BlockFace.UP);
+                    relative1.getState().update(true, false);
+                    relative2.getState().update(true, false);
 
                     if (restorationMemory)
                         if (blockState instanceof InventoryHolder)
@@ -212,8 +206,14 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
-                        || !passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b))
+                {
+                    e.blockList().remove(b);
+                    continue;
+                }
+
+
+                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -233,8 +233,8 @@ public class Listeners implements Listener
                 {
                     b.setType(Material.AIR);
                     state.setType(Material.AIR);
-                    Entity primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
-                    ((TNTPrimed) primed).setFuseTicks(80);
+                    TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
+                    primed.setFuseTicks(80);
                     plugin.savedStates.remove(state);
                     continue;
                 }
@@ -329,8 +329,13 @@ public class Listeners implements Listener
             {
                 Block b = blocks.get(i);
                 BlockState state = b.getState();
-                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b)
-                        || !passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
+                if (isBlacklistedMaterial("explosive-options.effected-material-blacklist", b))
+                {
+                    e.blockList().remove(b);
+                    continue;
+                }
+
+                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
                     continue;
 
                 boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
@@ -474,7 +479,7 @@ public class Listeners implements Listener
                     Material material = Material.getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-",
                             "_"));
                     short data = (short) Integer.parseInt(lineArgs[1]);
-                    if (block.getType() == material && block.getData() == data) return true;
+                    if (block.getType() == material && (block.getData() == data || data <= -1)) return true;
                     continue;
                 }
 
@@ -485,8 +490,8 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useFactions, boolean useGP,
-                                boolean useASkyBlock, boolean useLands, boolean useResidence, boolean useTowny)
+    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useKingdoms, boolean useFactions, boolean useGP,
+                                boolean useASkyBlock, boolean useResidence, boolean useTowny)
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
@@ -513,6 +518,15 @@ public class Listeners implements Listener
         {
             Kingdom kingdom = Feudal.getAPI().getKingdom(location);
             return kingdom == null;
+        }
+
+        if (useKingdoms && plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook"))
+        {
+            if (plugin.getServer().getPluginManager().getPlugin("Kingdoms") != null)
+            {
+                Land land = new Land(new SimpleChunkLocation(location.getChunk()));
+                if (land.getOwner() != null) return false;
+            }
         }
 
         if (useFactions && plugin.getConfig().getBoolean("hooks-options.factions.use-factions"))
@@ -555,17 +569,6 @@ public class Listeners implements Listener
             {
                 Claim claimAtLocation = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
                 if (claimAtLocation != null) return false;
-            }
-        }
-
-        if (useLands && plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
-        {
-            Plugin lands = plugin.getServer().getPluginManager().getPlugin("Lands");
-            if (lands != null)
-            {
-                LandChunk landChunk = Lands.getLandsAPI().getLandChunk(location);
-                if (landChunk != null && landChunk.getLand() != null && landChunk.getLand().getOwnerUUID() != null)
-                    return false;
             }
         }
 

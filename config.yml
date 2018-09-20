@@ -20,9 +20,9 @@ hooks-options:
   askyblock:
     # If this is enabled, physics to go features will not work on islands.
     use-askyblock: false
-  lands:
-    # If this is enabled, physics to go features will not work within claimed land.
-    use-lands: false
+  kingdoms:
+    # If this is enabled, physics to go features will not work within kingdom claimed land.
+    use-kingdoms: false
   residence:
     # If this is enabled, physics to go features will not work within residence land.
     use-residence: false
@@ -46,9 +46,10 @@ explosive-options:
     # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
     delay: 20
   # Materials inside the list below will be avoided by any regeneration or physic effects involved with explosions.
+  # (Note: Set the durability to -1 to ignore durability)
   effected-material-blacklist:
-  - "MOB_SPAWNER:0"
-  - "BEDROCK:0"
+  - "MOB_SPAWNER:-1"
+  - "BEDROCK:-1"
   # When blocks are damaged from explosions, should the effected blocks drop their relative items?
   block-drops: false
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
