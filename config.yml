@@ -50,6 +50,16 @@ explosive-options:
   effected-material-blacklist:
   - "MOB_SPAWNER:-1"
   - "BEDROCK:-1"
+  # If a material is placed in this list the block directly under the material will be saved as well to prevent damage from default physics.
+  # (Note: Set the durability to -1 to ignore durability)
+  help-needed-material:
+  - "WOODEN_DOOR:-1"
+  - "ACACIA_DOOR:-1"
+  - "BIRCH_DOOR:-1"
+  - "DARK_OAK_DOOR:-1"
+  - "IRON_DOOR:-1"
+  - "JUNGLE_DOOR:-1"
+  - "SPRUCE_DOOR:-1"
   # When blocks are damaged from explosions, should the effected blocks drop their relative items?
   block-drops: false
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
