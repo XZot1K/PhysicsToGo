@@ -3,7 +3,7 @@ hooks-options:
   world-guard:
     # This toggles the WorldGuard hook.
     use-hook: false
-    # Regions inside the list below will allow PTG to perform its magic inside each region.
+    # Regions within this list will allow PTG to perform its magic inside each of them.
     region-whitelist:
     - "allowed_zone"
   feudal:
