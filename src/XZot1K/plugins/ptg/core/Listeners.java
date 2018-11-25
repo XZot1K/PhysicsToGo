@@ -2,6 +2,9 @@ package XZot1K.plugins.ptg.core;
 
 import java.util.*;
 
+import com.sk89q.worldedit.bukkit.BukkitUtil;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.entity.FallingBlock;
@@ -27,7 +30,6 @@ import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.massivecore.ps.PS;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.WorldCoord;
-import com.sk89q.worldguard.bukkit.RegionContainer;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
@@ -556,24 +558,51 @@ public class Listeners implements Listener
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
-            RegionContainer container = plugin.getWorldGuard().getRegionContainer();
-            RegionManager regions = container.get(location.getWorld());
-            if (regions != null)
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            if (container != null)
             {
-                List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
-                for (int i = -1; ++i < regionList.size(); )
+                RegionManager regions = container.get(BukkitUtil.getLocalWorld(location.getWorld()));
+                if (regions != null)
                 {
-                    String r = regionList.get(i);
-                    ProtectedRegion region = regions.getRegion(r);
-                    if (region != null)
+                    List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
+                    for (int i = -1; ++i < regionList.size(); )
                     {
-                        com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
-                                location.getY(), location.getZ());
-                        if (region.contains(loc) && !isInList("hooks-options.world-guard.region-whitelist", r))
-                            return false;
+                        String r = regionList.get(i);
+                        ProtectedRegion region = regions.getRegion(r);
+                        if (region != null)
+                        {
+                            com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
+                                    location.getY(), location.getZ());
+                            if (region.contains(loc) && !isInList("hooks-options.world-guard.region-whitelist", r))
+                                return false;
+                        }
                     }
                 }
             }
+
+                /*
+                RegionContainer container = plugin.getWorldGuard().getRegionContainer();
+            if (container != null)
+            {
+                RegionManager regions = container.get(location.getWorld());
+                if (regions != null)
+                {
+                    List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
+                    for (int i = -1; ++i < regionList.size(); )
+                    {
+                        String r = regionList.get(i);
+                        ProtectedRegion region = regions.getRegion(r);
+                        if (region != null)
+                        {
+                            com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
+                                    location.getY(), location.getZ());
+                            if (region.contains(loc) && !isInList("hooks-options.world-guard.region-whitelist", r))
+                                return false;
+                        }
+                    }
+                }
+            }
+                 */
         }
 
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
