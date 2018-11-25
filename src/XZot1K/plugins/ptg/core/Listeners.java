@@ -601,7 +601,7 @@ public class Listeners implements Listener
                     }
                 }
             }
-                 */
+             */
         }
 
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
