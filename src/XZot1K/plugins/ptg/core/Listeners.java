@@ -571,9 +571,8 @@ public class Listeners implements Listener
                         ProtectedRegion region = regions.getRegion(r);
                         if (region != null)
                         {
-                            com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
-                                    location.getY(), location.getZ());
-                            if (region.contains(loc) && !isInList("hooks-options.world-guard.region-whitelist", r))
+                            if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
+                                    && !isInList("hooks-options.world-guard.region-whitelist", r))
                                 return false;
                         }
                     }
