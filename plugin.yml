@@ -1,5 +1,5 @@
 name: PhysicsToGo
-version: 1.7.6.3-B
+version: 1.7.6.4
 api-version: 1.13
 main: XZot1K.plugins.ptg.PhysicsToGo
 author: XZot1K
@@ -8,3 +8,13 @@ softdepend: [WorldGuard, WorldEdit, Factions, MassiveCore, Residence, Towny]
 commands:
    ptg:
      default: op
+permissions:
+  ptg.bypass:
+    default: op
+    description: Enables the player to bypass all enabled bypassable modules.
+  ptg.bypass.break:
+    default: op
+    description: Enables the player to break blocks without them being regenerated (If the module is enabled).
+  ptg.bypass.place:
+    default: op
+    description: Enables the player to place blocks without them being reverted (If the module is enabled).

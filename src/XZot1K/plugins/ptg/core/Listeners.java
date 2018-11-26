@@ -2,6 +2,9 @@ package XZot1K.plugins.ptg.core;
 
 import java.util.*;
 
+import XZot1K.plugins.ptg.core.extras.WorldGuardHook;
+import XZot1K.plugins.ptg.core.extras.wgversions.WorldGuard_New;
+import XZot1K.plugins.ptg.core.extras.wgversions.WorldGuard_Old;
 import com.sk89q.worldedit.bukkit.BukkitUtil;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
@@ -38,6 +41,7 @@ import com.wasteofplastic.askyblock.Island;
 import XZot1K.plugins.ptg.PhysicsToGo;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import sun.tools.jar.resources.jar;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
 
@@ -72,7 +76,7 @@ public class Listeners implements Listener
     @EventHandler
     public void onPlace(BlockPlaceEvent e)
     {
-        if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
+        if (e.getPlayer().hasPermission("ptg.bypass.place") || !plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isInMaterialList("block-place-options.effected-material-blacklist", e.getBlock())
                 || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true))
@@ -109,7 +113,7 @@ public class Listeners implements Listener
     @EventHandler
     public void onBreak(BlockBreakEvent e)
     {
-        if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
+        if (e.getPlayer().hasPermission("ptg.bypass.break") || !plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true))
             return;
@@ -558,50 +562,15 @@ public class Listeners implements Listener
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
-            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-            if (container != null)
+            if (plugin.getWorldGuard().getDescription().getVersion().startsWith("7"))
             {
-                RegionManager regions = container.get(BukkitUtil.getLocalWorld(location.getWorld()));
-                if (regions != null)
-                {
-                    List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
-                    for (int i = -1; ++i < regionList.size(); )
-                    {
-                        String r = regionList.get(i);
-                        ProtectedRegion region = regions.getRegion(r);
-                        if (region != null)
-                        {
-                            if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
-                                    && !isInList("hooks-options.world-guard.region-whitelist", r))
-                                return false;
-                        }
-                    }
-                }
-            }
-
-                /*
-                RegionContainer container = plugin.getWorldGuard().getRegionContainer();
-            if (container != null)
+                WorldGuardHook worldGuardHook = new WorldGuard_New(plugin);
+                if (!worldGuardHook.passedHook(location)) return false;
+            } else
             {
-                RegionManager regions = container.get(location.getWorld());
-                if (regions != null)
-                {
-                    List<String> regionList = new ArrayList<>(regions.getRegions().keySet());
-                    for (int i = -1; ++i < regionList.size(); )
-                    {
-                        String r = regionList.get(i);
-                        ProtectedRegion region = regions.getRegion(r);
-                        if (region != null)
-                        {
-                            com.sk89q.worldedit.Vector loc = new com.sk89q.worldedit.Vector(location.getX(),
-                                    location.getY(), location.getZ());
-                            if (region.contains(loc) && !isInList("hooks-options.world-guard.region-whitelist", r))
-                                return false;
-                        }
-                    }
-                }
+                WorldGuardHook worldGuardHook = new WorldGuard_Old(plugin);
+                if (!worldGuardHook.passedHook(location)) return false;
             }
-             */
         }
 
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
@@ -657,8 +626,7 @@ public class Listeners implements Listener
             if (aSkyBlock != null)
             {
                 Island island = ASkyBlockAPI.getInstance().getIslandAt(location);
-                if (island != null)
-                    return false;
+                if (island != null) return false;
             }
         }
 
