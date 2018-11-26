@@ -12,6 +12,9 @@ permissions:
   ptg.bypass:
     default: op
     description: Enables the player to bypass all enabled bypassable modules.
+    children:
+      ptg.bypass.break: true
+      ptg.bypass.place: true
   ptg.bypass.break:
     default: op
     description: Enables the player to break blocks without them being regenerated (If the module is enabled).
