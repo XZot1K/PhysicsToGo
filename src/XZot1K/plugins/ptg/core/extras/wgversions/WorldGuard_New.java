@@ -38,7 +38,7 @@ public class WorldGuard_New implements WorldGuardHook
                     if (region != null)
                     {
                         if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
-                                && !isInList("hooks-options.world-guard.region-whitelist", r))
+                                && isInList("hooks-options.world-guard.region-whitelist", r))
                             return false;
                     }
                 }
