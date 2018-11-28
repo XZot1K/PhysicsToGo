@@ -3,7 +3,7 @@ version: 1.7.6.5
 api-version: 1.13
 main: XZot1K.plugins.ptg.PhysicsToGo
 author: XZot1K
-description: Listeners newer, re-done version of XZot1K's physics portion of his plugin Explode!
+description: PhysicsToGo is a lightweight physics & environmental regeneration plugin.
 softdepend: [WorldGuard, WorldEdit, Factions, MassiveCore, Residence, Towny]
 commands:
    ptg:
