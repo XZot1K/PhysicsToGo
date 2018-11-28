@@ -580,7 +580,7 @@ public class Listeners implements Listener
                     if (region != null)
                     {
                         if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
-                                && isInList("hooks-options.world-guard.region-whitelist", region.getId()))
+                                && !isInList("hooks-options.world-guard.region-whitelist", region.getId()))
                             return false;
                     }
                 }
