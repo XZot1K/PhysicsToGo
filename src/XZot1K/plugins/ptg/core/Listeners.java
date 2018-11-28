@@ -1,29 +1,6 @@
 package XZot1K.plugins.ptg.core;
 
-import java.util.*;
-
-import XZot1K.plugins.ptg.core.extras.WorldGuardHook;
-import XZot1K.plugins.ptg.core.extras.wgversions.WorldGuard_New;
-import XZot1K.plugins.ptg.core.extras.wgversions.WorldGuard_Old;
-import com.sk89q.worldedit.bukkit.BukkitUtil;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
-import org.bukkit.*;
-import org.bukkit.block.*;
-import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.TNTPrimed;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
-import org.bukkit.event.entity.*;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
-import org.kingdoms.constants.land.Land;
-import org.kingdoms.constants.land.SimpleChunkLocation;
-
+import XZot1K.plugins.ptg.PhysicsToGo;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.massivecraft.factions.Board;
@@ -33,17 +10,46 @@ import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.massivecore.ps.PS;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
-
-import XZot1K.plugins.ptg.PhysicsToGo;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import sun.tools.jar.resources.jar;
+import org.bukkit.Effect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
+import org.kingdoms.constants.land.Land;
+import org.kingdoms.constants.land.SimpleChunkLocation;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Listeners implements Listener
 {
@@ -562,14 +568,22 @@ public class Listeners implements Listener
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
-            if (plugin.getWorldGuard().getDescription().getVersion().startsWith("7"))
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            RegionManager regionManager = container.get(BukkitAdapter.adapt(location.getWorld()));
+            if (regionManager != null)
             {
-                WorldGuardHook worldGuardHook = new WorldGuard_New(plugin);
-                if (!worldGuardHook.passedHook(location)) return false;
-            } else
-            {
-                WorldGuardHook worldGuardHook = new WorldGuard_Old(plugin);
-                if (!worldGuardHook.passedHook(location)) return false;
+                List<String> regionList = new ArrayList<>(regionManager.getRegions().keySet());
+                for (int i = -1; ++i < regionList.size(); )
+                {
+                    String regionId = regionList.get(i);
+                    ProtectedRegion region = regionManager.getRegions().get(regionId);
+                    if (region != null)
+                    {
+                        if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
+                                && isInList("hooks-options.world-guard.region-whitelist", region.getId()))
+                            return false;
+                    }
+                }
             }
         }
 
