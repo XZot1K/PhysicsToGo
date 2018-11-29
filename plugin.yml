@@ -1,5 +1,5 @@
 name: PhysicsToGo
-version: 1.7.6.5
+version: 1.7.6.7
 api-version: 1.13
 main: XZot1K.plugins.ptg.PhysicsToGo
 author: XZot1K
@@ -21,3 +21,6 @@ permissions:
   ptg.bypass.place:
     default: op
     description: Enables the player to place blocks without them being reverted (If the module is enabled).
+  ptg.reload:
+    default: op
+    description: Enables the player to use the reload command.
