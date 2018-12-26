@@ -38,16 +38,11 @@ public class PhysicsToGo extends JavaPlugin
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
 
-        try
-        {
-            if (updateChecker.checkForUpdates())
-                getServer().getConsoleSender().sendMessage(
-                        colorText("&6&lPTG&r &7- &cThere seems to be a new version on the PhysicsToGo page."));
-            else
-                getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aEverything is up to date!"));
-        } catch (Exception ignored)
-        {
-        }
+        if (updateChecker.checkForUpdates())
+            getServer().getConsoleSender().sendMessage(
+                    colorText("&6&lPTG&r &7- &cThere seems to be a new version on the PhysicsToGo page."));
+        else
+            getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aEverything is up to date!"));
         getServer().getConsoleSender().sendMessage(colorText(
                 "&6&lPTG&r &7- &aVersion &e" + getDescription().getVersion() + " &ahas been successfully enabled!"));
     }
@@ -75,15 +70,10 @@ public class PhysicsToGo extends JavaPlugin
 
         for (int i = -1; ++i < savedStates.size(); )
         {
-            try
-            {
-                BlockState state = savedStates.get(i);
-                state.update(true, false);
-                state.update();
-                restoreCounter += 1;
-            } catch (Exception ignored)
-            {
-            }
+            BlockState state = savedStates.get(i);
+            state.update(true, false);
+            state.update();
+            restoreCounter += 1;
         }
 
         savedStates.clear();
@@ -105,7 +95,7 @@ public class PhysicsToGo extends JavaPlugin
         return pluginInstance;
     }
 
-    public String colorText(String text)
+    private String colorText(String text)
     {
         return ChatColor.translateAlternateColorCodes('&', text);
     }

@@ -8,6 +8,7 @@ import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.massivecore.ps.PS;
+import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.WorldCoord;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -541,24 +542,21 @@ public class Listeners implements Listener
         for (int i = -1; ++i < list.size(); )
         {
             String line = list.get(i);
-            try
+            if (line.contains(":"))
             {
-                if (line.contains(":"))
+                String[] lineArgs = line.split(":");
+                if (lineArgs[0] != null && !lineArgs[0].equalsIgnoreCase(""))
                 {
-                    String[] lineArgs = line.split(":");
-                    Material material = Material
-                            .getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-", "_"));
+                    Material material = Material.getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-", "_"));
                     short data = (short) Integer.parseInt(lineArgs[1]);
-                    if (block.getType() == material && (block.getData() == data || data <= -1))
-                        return true;
-                    continue;
+                    if (block.getType() == material && (block.getData() == data || data <= -1)) return true;
                 }
 
-                if (Material.getMaterial(line.toUpperCase().replace(" ", "_").replace("-", "_")) == block.getType())
-                    return true;
-            } catch (Exception ignored)
-            {
+                continue;
             }
+
+            if (!line.equalsIgnoreCase("") && Material.getMaterial(line.toUpperCase().replace(" ", "_").replace("-", "_")) == block.getType())
+                return true;
         }
         return false;
     }
@@ -607,30 +605,16 @@ public class Listeners implements Listener
         {
             if (plugin.getConfig().getBoolean("hooks-options.factions.factions-uuid"))
             {
-                try
-                {
-                    FLocation fLocation = new FLocation(location);
-                    com.massivecraft.factions.Faction factionAtLocation = Board.getInstance().getFactionAt(fLocation);
-                    if (factionAtLocation != null
-                            && !(factionAtLocation.isWilderness() || factionAtLocation.isWarZone()))
-                        return false;
-                } catch (Exception ignored)
-                {
-                }
+                FLocation fLocation = new FLocation(location);
+                com.massivecraft.factions.Faction factionAtLocation = Board.getInstance().getFactionAt(fLocation);
+                if (factionAtLocation != null && !(factionAtLocation.isWilderness() || factionAtLocation.isWarZone()))
+                    return false;
             } else
             {
-                try
-                {
-                    com.massivecraft.factions.entity.Faction factionAtLocation = BoardColl.get()
-                            .getFactionAt(PS.valueOf(location));
-                    if (factionAtLocation != null && !(factionAtLocation.getComparisonName()
-                            .equals(FactionColl.get().getSafezone().getComparisonName())
-                            || factionAtLocation.getComparisonName()
-                            .equals(FactionColl.get().getWarzone().getComparisonName())))
-                        return false;
-                } catch (Exception ignored)
-                {
-                }
+                com.massivecraft.factions.entity.Faction factionAtLocation = BoardColl.get().getFactionAt(PS.valueOf(location));
+                if (factionAtLocation != null && !(factionAtLocation.getComparisonName().equals(FactionColl.get().getSafezone().getComparisonName())
+                        || factionAtLocation.getComparisonName().equals(FactionColl.get().getWarzone().getComparisonName())))
+                    return false;
             }
         }
 
@@ -671,21 +655,19 @@ public class Listeners implements Listener
             Plugin towny = plugin.getServer().getPluginManager().getPlugin("Towny");
             if (towny != null)
             {
+                Town town = null;
                 try
                 {
-                    Town town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
-                    if (town != null)
-                        return false;
-                } catch (Exception ignored)
-                {
-                }
+                    town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
+                } catch (NotRegisteredException ignored) {}
+                return town == null;
             }
         }
 
         return true;
     }
 
-    public ArrayList<Location> getPlacedLocationMemory()
+    private ArrayList<Location> getPlacedLocationMemory()
     {
         return placedLocationMemory;
     }
