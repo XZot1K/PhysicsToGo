@@ -8,7 +8,6 @@ import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.massivecore.ps.PS;
-import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.Town;
 import com.palmergames.bukkit.towny.object.WorldCoord;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
@@ -655,12 +654,11 @@ public class Listeners implements Listener
             Plugin towny = plugin.getServer().getPluginManager().getPlugin("Towny");
             if (towny != null)
             {
-                Town town = null;
                 try
                 {
-                    town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
-                } catch (NotRegisteredException ignored) {}
-                return town == null;
+                    Town town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
+                    if (town != null) return false;
+                } catch (Exception ignored) {}
             }
         }
 
