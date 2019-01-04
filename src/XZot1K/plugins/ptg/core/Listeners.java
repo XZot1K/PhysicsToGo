@@ -36,17 +36,19 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.kingdoms.constants.land.Land;
 import org.kingdoms.constants.land.SimpleChunkLocation;
 import us.forseth11.feudal.core.Feudal;
 import us.forseth11.feudal.kingdoms.Kingdom;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +61,6 @@ public class Listeners implements Listener
     private ArrayList<Location> blockLocationMemory, placedLocationMemory;
     private HashMap<Location, ItemStack[]> containers;
     private HashMap<Location, String[]> signs;
-    private List<Block> blockList;
 
     public Listeners(PhysicsToGo plugin)
     {
@@ -68,14 +69,6 @@ public class Listeners implements Listener
         blockLocationMemory = new ArrayList<>();
         containers = new HashMap<>();
         signs = new HashMap<>();
-        blockList = new ArrayList<>();
-    }
-
-    @EventHandler
-    public void itemSpawn(ItemSpawnEvent e)
-    {
-        if (blockList.contains(e.getLocation().getBlock()))
-            e.setCancelled(true);
     }
 
     @SuppressWarnings("deprecation")
@@ -107,7 +100,14 @@ public class Listeners implements Listener
                 Material placedMaterial = e.getBlock().getType();
                 e.getBlock().setType(previousMaterial);
                 if (!plugin.getServerVersion().startsWith("v1_13"))
-                    e.getBlock().setData(previousData);
+                {
+                    try
+                    {
+                        Method closeMethod = e.getBlock().getClass().getMethod("setData", Short.class);
+                        if (closeMethod != null) closeMethod.invoke(e.getBlock().getClass(), (short) previousData);
+                    } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
+                }
+
                 e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
                         e.getBlock().getType() == Material.AIR ? placedMaterial.getId()
                                 : e.getBlock().getType().getId());
@@ -211,153 +211,18 @@ public class Listeners implements Listener
         }
     }
 
-    @SuppressWarnings("deprecation")
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent e)
     {
-        if (isInList("explosive-options.blacklisted-worlds", e.getBlock().getWorld().getName()))
-            return;
-        if (!plugin.getConfig().getBoolean("explosive-options.block-damage"))
-            e.blockList().clear();
+        if (isInList("explosive-options.blacklisted-worlds", e.getBlock().getWorld().getName())) return;
+        if (!plugin.getConfig().getBoolean("explosive-options.block-damage")) e.blockList().clear();
         else
         {
+            boolean restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory");
             int delay = plugin.getConfig().getInt("explosive-options.block-regeneration-options.delay"),
                     speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed");
-            List<Block> blocks = new ArrayList<>(e.blockList());
-            for (int i = -1; ++i < blocks.size(); )
-            {
-                Block b = blocks.get(i);
-                BlockState state = b.getState();
-                if (isInMaterialList("explosive-options.effected-material-blacklist", b))
-                {
-                    e.blockList().remove(b);
-                    continue;
-                }
 
-                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
-                    continue;
-
-                boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
-                        restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory"),
-                        containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
-                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
-                if (blockRegeneration)
-                    plugin.savedStates.add(state);
-
-                if (!dropItems)
-                {
-                    e.setYield(0);
-                    blockList.add(b);
-                }
-
-                if (b.getType() == Material.TNT)
-                {
-                    b.setType(Material.AIR);
-                    state.setType(Material.AIR);
-                    TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
-                    primed.setFuseTicks(80);
-                    plugin.savedStates.remove(state);
-                    continue;
-                }
-
-                if (blockRegeneration && restorationMemory)
-                    if (state instanceof InventoryHolder)
-                    {
-                        InventoryHolder ih = (InventoryHolder) state;
-                        containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                        if (!containerDrops)
-                            ih.getInventory().clear();
-                    } else if (b.getState() instanceof Sign)
-                    {
-                        Sign sign = (Sign) state;
-                        signs.put(b.getLocation(), sign.getLines());
-                    }
-
-                if (blockPhysics)
-                {
-                    try
-                    {
-                        FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
-                                b.getData());
-                        fallingBlock.setDropItem(false);
-                        fallingBlock.setVelocity(new Vector(1, 1, 1));
-                        fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                        plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
-                    } catch (IllegalArgumentException ignored)
-                    {
-                    }
-                }
-
-                int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
-                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
-                {
-                    if (!blockLocationMemory.contains(b.getLocation()))
-                        blockLocationMemory.add(b.getLocation());
-                    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
-                    {
-                        try
-                        {
-                            state.update(true, false);
-                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
-                            Block relative1 = e.getBlock().getRelative(BlockFace.DOWN),
-                                    relative2 = e.getBlock().getRelative(BlockFace.UP);
-                            relative1.getState().update(true, false);
-                            relative2.getState().update(true, false);
-
-                            if (restorationMemory)
-                                if (state instanceof InventoryHolder)
-                                {
-                                    InventoryHolder ih = (InventoryHolder) state;
-                                    if (containers.containsKey(b.getLocation()))
-                                    {
-                                        ih.getInventory().setContents(containers.get(b.getLocation()));
-                                        containers.remove(b.getLocation());
-                                    }
-                                } else if (state instanceof Sign)
-                                {
-                                    Sign sign = (Sign) state;
-                                    if (signs.containsKey(b.getLocation()))
-                                    {
-                                        int j = 0;
-                                        for (String line : signs.get(b.getLocation()))
-                                        {
-                                            sign.setLine(j, line);
-                                            j += 1;
-                                        }
-
-                                        sign.update();
-                                        signs.remove(b.getLocation());
-                                    }
-                                }
-
-                            blockLocationMemory.remove(b.getLocation());
-                            plugin.savedStates.remove(state);
-                        } catch (IllegalArgumentException | IndexOutOfBoundsException ignored)
-                        {
-                        }
-                    }, delay);
-                    delay += speed;
-                }
-            }
-        }
-
-        blockList.clear();
-    }
-
-    @SuppressWarnings("deprecation")
-    @EventHandler
-    public void onExplodeEntity(EntityExplodeEvent e)
-    {
-        if (isInList("explosive-options.blacklisted-worlds", e.getLocation().getWorld().getName())
-                || isInList("explosive-options.entity-explosion-blacklist", e.getEntity().getType().name()))
-            return;
-        if (!plugin.getConfig().getBoolean("explosive-options.block-damage"))
-            e.blockList().clear();
-        else
-        {
-            int delay = plugin.getConfig().getInt("explosive-options.block-regeneration-options.delay"),
-                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed");
+            List<Location> restoreLocations = new ArrayList<>();
             List<Block> blocks = new ArrayList<>(e.blockList());
             for (int i = -1; ++i < blocks.size(); )
             {
@@ -390,19 +255,17 @@ public class Listeners implements Listener
                 if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
                     continue;
 
-                boolean dropItems = plugin.getConfig().getBoolean("explosive-options.block-drops"),
-                        restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory"),
-                        containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
-                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
-                if (blockRegeneration)
-                    plugin.savedStates.add(state);
-
-                if (!dropItems)
+                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
                 {
                     e.setYield(0);
-                    blockList.add(b);
+                    if (isInMaterialList("explosive-options.drop-watch", b.getType(), b.getData()))
+                        b.setType(Material.AIR);
                 }
+
+                boolean containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
+                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
+                if (blockRegeneration) plugin.savedStates.add(state);
 
                 if (b.getType() == Material.TNT)
                 {
@@ -418,9 +281,10 @@ public class Listeners implements Listener
                     if (state instanceof InventoryHolder)
                     {
                         InventoryHolder ih = (InventoryHolder) state;
+                        restoreLocations.add(b.getLocation());
                         containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                        if (!containerDrops)
-                            ih.getInventory().clear();
+                        restoreLocations.add(b.getLocation());
+                        if (!containerDrops) ih.getInventory().clear();
                     } else if (b.getState() instanceof Sign)
                     {
                         Sign sign = (Sign) state;
@@ -429,19 +293,12 @@ public class Listeners implements Listener
 
                 if (blockPhysics)
                 {
-                    try
-                    {
-                        @SuppressWarnings("deprecation")
-                        FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
-                                b.getData());
-                        fallingBlock.setDropItem(false);
-                        fallingBlock.setVelocity(
-                                new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
-                        fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                        plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
-                    } catch (IllegalArgumentException ignored)
-                    {
-                    }
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
+                            b.getData());
+                    fallingBlock.setDropItem(false);
+                    fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
+                    fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
@@ -451,52 +308,213 @@ public class Listeners implements Listener
                         blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
-                        try
-                        {
-                            state.update(true, false);
-                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
-                            Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
-                            relative1.getState().update(true, false);
-                            relative2.getState().update(true, false);
+                        state.update(true, false);
+                        b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
+                        relative1.getState().update(true, false);
+                        relative2.getState().update(true, false);
 
-                            if (restorationMemory)
-                                if (state instanceof InventoryHolder)
+                        if (restorationMemory)
+                            if (state instanceof Sign)
+                            {
+                                Sign sign = (Sign) state;
+                                if (signs.containsKey(b.getLocation()))
                                 {
-                                    InventoryHolder ih = (InventoryHolder) state;
-                                    if (containers.containsKey(b.getLocation()))
+                                    int j = 0;
+                                    for (String line : signs.get(b.getLocation()))
                                     {
-                                        ih.getInventory().setContents(containers.get(b.getLocation()));
-                                        containers.remove(b.getLocation());
+                                        sign.setLine(j, line);
+                                        j += 1;
                                     }
-                                } else if (state instanceof Sign)
-                                {
-                                    Sign sign = (Sign) state;
-                                    if (signs.containsKey(b.getLocation()))
-                                    {
-                                        int j = 0;
-                                        for (String line : signs.get(b.getLocation()))
-                                        {
-                                            sign.setLine(j, line);
-                                            j += 1;
-                                        }
 
-                                        sign.update();
-                                        signs.remove(b.getLocation());
-                                    }
+                                    sign.update();
+                                    signs.remove(b.getLocation());
                                 }
+                            }
 
-                            blockLocationMemory.remove(b.getLocation());
-                            plugin.savedStates.remove(state);
-                        } catch (IllegalArgumentException | IndexOutOfBoundsException ignored)
-                        {
-                        }
+                        blockLocationMemory.remove(b.getLocation());
+                        plugin.savedStates.remove(state);
                     }, delay);
                     delay += speed;
                 }
             }
-        }
 
-        blockList.clear();
+            if (restorationMemory)
+                new BukkitRunnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = -1; ++i < restoreLocations.size(); )
+                        {
+                            Location location = restoreLocations.get(i);
+                            Block block = location.getBlock();
+                            if (block.getState() instanceof InventoryHolder)
+                            {
+                                InventoryHolder ih = (InventoryHolder) block.getState();
+                                ih.getInventory().setContents(containers.get(location));
+                                containers.remove(location);
+                            }
+                        }
+                    }
+                }.runTaskLater(plugin, delay + plugin.getConfig().getInt("explosive-options.block-regeneration-options.container-fix-rate"));
+
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @EventHandler
+    public void onExplodeEntity(EntityExplodeEvent e)
+    {
+        if (isInList("explosive-options.blacklisted-worlds", e.getLocation().getWorld().getName())
+                || isInList("explosive-options.entity-explosion-blacklist", e.getEntity().getType().name()))
+            return;
+        if (!plugin.getConfig().getBoolean("explosive-options.block-damage"))
+            e.blockList().clear();
+        else
+        {
+            boolean restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory");
+            int delay = plugin.getConfig().getInt("explosive-options.block-regeneration-options.delay"),
+                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed");
+
+            List<Location> restoreLocations = new ArrayList<>();
+            List<Block> blocks = new ArrayList<>(e.blockList());
+            for (int i = -1; ++i < blocks.size(); )
+            {
+                Block b = blocks.get(i);
+                BlockState state = b.getState();
+                if (isInMaterialList("explosive-options.effected-material-blacklist", b))
+                {
+                    if (isInMaterialList("explosive-options.help-needed-material", b))
+                    {
+                        Block downBlock = b.getRelative(BlockFace.DOWN);
+                        downBlock.getState().update(true, false);
+                        e.blockList().remove(downBlock);
+                        blocks.remove(downBlock);
+
+                        if (downBlock.getType() == b.getType())
+                        {
+                            Block downBlock2 = downBlock.getRelative(BlockFace.DOWN);
+                            downBlock2.getState().update(true, false);
+                            state.update(true, false);
+                            e.blockList().remove(downBlock2);
+                            blocks.remove(downBlock2);
+                        }
+                    }
+
+                    state.update(true, false);
+                    e.blockList().remove(b);
+                    continue;
+                }
+
+                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
+                    continue;
+
+                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
+                {
+                    e.setYield(0);
+                    if (isInMaterialList("explosive-options.drop-watch", b.getType(), b.getData()))
+                        b.setType(Material.AIR);
+                }
+
+                boolean containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
+                        blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
+                if (blockRegeneration) plugin.savedStates.add(state);
+
+                if (b.getType() == Material.TNT)
+                {
+                    b.setType(Material.AIR);
+                    state.setType(Material.AIR);
+                    TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
+                    primed.setFuseTicks(80);
+                    plugin.savedStates.remove(state);
+                    continue;
+                }
+
+                if (blockRegeneration && restorationMemory)
+                    if (state instanceof InventoryHolder)
+                    {
+                        InventoryHolder ih = (InventoryHolder) state;
+                        restoreLocations.add(b.getLocation());
+                        containers.put(b.getLocation(), ih.getInventory().getContents().clone());
+                        restoreLocations.add(b.getLocation());
+                        if (!containerDrops) ih.getInventory().clear();
+                    } else if (b.getState() instanceof Sign)
+                    {
+                        Sign sign = (Sign) state;
+                        signs.put(b.getLocation(), sign.getLines());
+                    }
+
+                if (blockPhysics)
+                {
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
+                            b.getData());
+                    fallingBlock.setDropItem(false);
+                    fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
+                    fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
+                }
+
+                int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
+                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
+                {
+                    if (!blockLocationMemory.contains(b.getLocation()))
+                        blockLocationMemory.add(b.getLocation());
+                    plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
+                    {
+                        state.update(true, false);
+                        b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
+                        relative1.getState().update(true, false);
+                        relative2.getState().update(true, false);
+
+                        if (restorationMemory)
+                            if (state instanceof Sign)
+                            {
+                                Sign sign = (Sign) state;
+                                if (signs.containsKey(b.getLocation()))
+                                {
+                                    int j = 0;
+                                    for (String line : signs.get(b.getLocation()))
+                                    {
+                                        sign.setLine(j, line);
+                                        j += 1;
+                                    }
+
+                                    sign.update();
+                                    signs.remove(b.getLocation());
+                                }
+                            }
+
+                        blockLocationMemory.remove(b.getLocation());
+                        plugin.savedStates.remove(state);
+                    }, delay);
+                    delay += speed;
+                }
+            }
+
+            if (restorationMemory)
+                new BukkitRunnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        for (int i = -1; ++i < restoreLocations.size(); )
+                        {
+                            Location location = restoreLocations.get(i);
+                            Block block = location.getBlock();
+                            if (block.getState() instanceof InventoryHolder)
+                            {
+                                InventoryHolder ih = (InventoryHolder) block.getState();
+                                ih.getInventory().setContents(containers.get(location));
+                                containers.remove(location);
+                            }
+                        }
+                    }
+                }.runTaskLater(plugin, delay + plugin.getConfig().getInt("explosive-options.block-regeneration-options.container-fix-rate"));
+
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -531,6 +549,31 @@ public class Listeners implements Listener
         for (int i = -1; ++i < list.size(); )
             if (list.get(i).equalsIgnoreCase(name))
                 return true;
+        return false;
+    }
+
+    private boolean isInMaterialList(String configurationPath, Material material, short durability)
+    {
+        List<String> list = new ArrayList<>(plugin.getConfig().getStringList(configurationPath));
+        for (int i = -1; ++i < list.size(); )
+        {
+            String line = list.get(i);
+            if (line.contains(":"))
+            {
+                String[] lineArgs = line.split(":");
+                if (lineArgs[0] != null && !lineArgs[0].equalsIgnoreCase(""))
+                {
+                    Material material2 = Material.getMaterial(lineArgs[0].toUpperCase().replace(" ", "_").replace("-", "_"));
+                    short data = (short) Integer.parseInt(lineArgs[1]);
+                    if (material == material2 && (durability == data || data <= -1)) return true;
+                }
+
+                continue;
+            }
+
+            if (!line.equalsIgnoreCase("") && Material.getMaterial(line.toUpperCase().replace(" ", "_").replace("-", "_")) == material)
+                return true;
+        }
         return false;
     }
 

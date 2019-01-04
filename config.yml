@@ -11,7 +11,7 @@ hooks-options:
     use-hook: false
     # Regions within this list will allow PTG to perform its magic inside each of them.
     region-whitelist:
-    - "allowed_zone"
+      - "allowed_zone"
   feudal:
     # If this is enabled, physics to go features will not work within claimed land.
     use-hook: false
@@ -51,23 +51,38 @@ explosive-options:
     speed: 20
     # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
     delay: 20
+    # This is the delay after the general regeneration for containers to be re-checked to ensure every item is restored.
+    container-fix-rate: 40
   # Materials inside the list below will be avoided by any regeneration or physic effects involved with explosions.
   # (Note: Set the durability to -1 to ignore durability)
   effected-material-blacklist:
-  - "MOB_SPAWNER:-1"
-  - "BEDROCK:-1"
+    - "MOB_SPAWNER:-1"
+    - "BEDROCK:-1"
   # If a material is placed in this list the block directly under the material will be saved as well to prevent damage from default physics.
   # (Note: Set the durability to -1 to ignore durability)
   help-needed-material:
-  - "WOODEN_DOOR:-1"
-  - "ACACIA_DOOR:-1"
-  - "BIRCH_DOOR:-1"
-  - "DARK_OAK_DOOR:-1"
-  - "IRON_DOOR:-1"
-  - "JUNGLE_DOOR:-1"
-  - "SPRUCE_DOOR:-1"
+    - "WOODEN_DOOR:-1"
+    - "ACACIA_DOOR:-1"
+    - "BIRCH_DOOR:-1"
+    - "DARK_OAK_DOOR:-1"
+    - "IRON_DOOR:-1"
+    - "JUNGLE_DOOR:-1"
+    - "SPRUCE_DOOR:-1"
   # When blocks are damaged from explosions, should the effected blocks drop their relative items?
   block-drops: false
+  # Drop watch is a list of materials that are double checked during explosions to ensure blocks don't drop items.
+  drop-watch:
+    - "BEETROOT_SEEDS:-1"
+    - "WHEAT_SEEDS:-1"
+    - "CROPS:-1"
+    - "CARROT:-1"
+    - "CARROTS:-1"
+    - "POTATO:-1"
+    - "POTATOES:-1"
+    - "BEETROOT_BLOCK:-1"
+    - "BEETROOTS:-1"
+    - "BEETROOT:-1"
+    - "WHEAT:-1"
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
   block-restoration-memory: true
   # Should destroyed containers drop their items?
@@ -75,10 +90,10 @@ explosive-options:
   container-drops: false
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
-  - "world_the_end"
+    - "world_the_end"
   # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
   entity-explosion-blacklist:
-  - "CREEPER"
+    - "CREEPER"
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
@@ -93,8 +108,8 @@ block-break-options:
     delay: 20
   # Materials inside the list below will be avoided by any regeneration or physics effects involved with block breaking.
   effected-material-blacklist:
-  - "OBSIDIAN:0"
-  - "BEDROCK:0"
+    - "OBSIDIAN:0"
+    - "BEDROCK:0"
   # When blocks are damaged from players, should the effected blocks drop their relative items?
   block-drops: false
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
@@ -104,7 +119,7 @@ block-break-options:
   container-drops: false
   # The worlds inside the list below will not be effected by any player block damage modified by PTG.
   blacklisted-worlds:
-  - "world_the_end"
+    - "world_the_end"
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
@@ -121,11 +136,11 @@ block-place-options:
     delay: 20
   # Materials inside the list below will be avoided by any reversion or physics effects involved with block placing.
   effected-material-blacklist:
-  - "OBSIDIAN:0"
-  - "BEDROCK:0"
+    - "OBSIDIAN:0"
+    - "BEDROCK:0"
   # The worlds inside the list below will not be effected by any player placement modifications by PTG.
   blacklisted-worlds:
-  - "world_the_end"
+    - "world_the_end"
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   # (Note: For block placing blocks will not be 'reverted' unless below/equal to the defined height below.)
   reversion-height: -1
