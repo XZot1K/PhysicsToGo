@@ -35,6 +35,9 @@ hooks-options:
   towny:
     # If this is enabled, physics to go features will not work within town blocks.
     use-towny: false
+  lands:
+    # If this is enabled,  physics to go features will not work within land claims.
+    use-lands: false
 
 explosive-options:
   # If this is enabled blocks will not be effected by explosions.

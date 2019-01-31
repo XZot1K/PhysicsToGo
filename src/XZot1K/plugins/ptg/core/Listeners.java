@@ -1,6 +1,7 @@
 package XZot1K.plugins.ptg.core;
 
 import XZot1K.plugins.ptg.PhysicsToGo;
+import XZot1K.plugins.ptg.core.internals.LandsHook;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.massivecraft.factions.Board;
@@ -17,6 +18,8 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
+import me.angeschossen.lands.api.landsaddons.LandsAddon;
+import me.angeschossen.lands.api.landsaddons.LandsAddons;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
@@ -78,7 +81,7 @@ public class Listeners implements Listener
         if (e.getPlayer().hasPermission("ptg.bypass.place") || !plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isInMaterialList("block-place-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true))
+                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true, true))
             return;
         if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel"))
         {
@@ -121,7 +124,7 @@ public class Listeners implements Listener
     {
         if (e.getPlayer().hasPermission("ptg.bypass.break") || !plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
-                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true))
+                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true, true))
             return;
         if (isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
 
@@ -166,47 +169,42 @@ public class Listeners implements Listener
                 blockLocationMemory.add(e.getBlock().getLocation());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
-                try
-                {
-                    blockState.update(true, false);
-                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
-                            e.getBlock().getType().getId());
-                    Block relative1 = e.getBlock().getRelative(BlockFace.DOWN),
-                            relative2 = e.getBlock().getRelative(BlockFace.UP);
-                    relative1.getState().update(true, false);
-                    relative2.getState().update(true, false);
+                blockState.update(true, false);
+                e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
+                        e.getBlock().getType().getId());
+                Block relative1 = e.getBlock().getRelative(BlockFace.DOWN),
+                        relative2 = e.getBlock().getRelative(BlockFace.UP);
+                relative1.getState().update(true, false);
+                relative2.getState().update(true, false);
 
-                    if (restorationMemory)
-                        if (blockState instanceof InventoryHolder)
+                if (restorationMemory)
+                    if (blockState instanceof InventoryHolder)
+                    {
+                        InventoryHolder ih = (InventoryHolder) blockState;
+                        if (!containers.isEmpty() && containers.containsKey(e.getBlock().getLocation()))
                         {
-                            InventoryHolder ih = (InventoryHolder) blockState;
-                            if (!containers.isEmpty() && containers.containsKey(e.getBlock().getLocation()))
-                            {
-                                ih.getInventory().setContents(containers.get(e.getBlock().getLocation()));
-                                containers.remove(e.getBlock().getLocation());
-                            }
-                        } else if (blockState instanceof Sign)
-                        {
-                            Sign sign = (Sign) blockState;
-                            if (!signs.isEmpty() && signs.containsKey(e.getBlock().getLocation()))
-                            {
-                                int j = 0;
-                                for (String line : signs.get(e.getBlock().getLocation()))
-                                {
-                                    sign.setLine(j, line);
-                                    j += 1;
-                                }
-
-                                sign.update();
-                                signs.remove(e.getBlock().getLocation());
-                            }
+                            ih.getInventory().setContents(containers.get(e.getBlock().getLocation()));
+                            containers.remove(e.getBlock().getLocation());
                         }
+                    } else if (blockState instanceof Sign)
+                    {
+                        Sign sign = (Sign) blockState;
+                        if (!signs.isEmpty() && signs.containsKey(e.getBlock().getLocation()))
+                        {
+                            int j = 0;
+                            for (String line : signs.get(e.getBlock().getLocation()))
+                            {
+                                sign.setLine(j, line);
+                                j += 1;
+                            }
 
-                    blockLocationMemory.remove(e.getBlock().getLocation());
-                    plugin.savedStates.remove(blockState);
-                } catch (IllegalArgumentException | IndexOutOfBoundsException ignored)
-                {
-                }
+                            sign.update();
+                            signs.remove(e.getBlock().getLocation());
+                        }
+                    }
+
+                blockLocationMemory.remove(e.getBlock().getLocation());
+                plugin.savedStates.remove(blockState);
             }, delay);
         }
     }
@@ -252,7 +250,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
+                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true, true))
                     continue;
 
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
@@ -332,7 +330,6 @@ public class Listeners implements Listener
                                 }
                             }
 
-                        blockLocationMemory.remove(b.getLocation());
                         plugin.savedStates.remove(state);
                     }, delay);
                     delay += speed;
@@ -359,6 +356,15 @@ public class Listeners implements Listener
                     }
                 }.runTaskLater(plugin, delay + plugin.getConfig().getInt("explosive-options.block-regeneration-options.container-fix-rate"));
 
+            new BukkitRunnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (int i = -1; ++i < blocks.size(); )
+                        blockLocationMemory.remove(blocks.get(i).getLocation());
+                }
+            }.runTaskLater(plugin, speed * (blocks.size() / 2));
         }
     }
 
@@ -407,7 +413,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true))
+                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true, true))
                     continue;
 
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
@@ -487,7 +493,6 @@ public class Listeners implements Listener
                                 }
                             }
 
-                        blockLocationMemory.remove(b.getLocation());
                         plugin.savedStates.remove(state);
                     }, delay);
                     delay += speed;
@@ -514,6 +519,15 @@ public class Listeners implements Listener
                     }
                 }.runTaskLater(plugin, delay + plugin.getConfig().getInt("explosive-options.block-regeneration-options.container-fix-rate"));
 
+            new BukkitRunnable()
+            {
+                @Override
+                public void run()
+                {
+                    for (int i = -1; ++i < blocks.size(); )
+                        blockLocationMemory.remove(blocks.get(i).getLocation());
+                }
+            }.runTaskLater(plugin, speed * (blocks.size() / 2));
         }
     }
 
@@ -603,7 +617,7 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useKingdoms,
+    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useKingdoms, boolean useLands,
                                 boolean useFactions, boolean useGP, boolean useASkyBlock, boolean useResidence, boolean useTowny)
     {
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
@@ -625,6 +639,16 @@ public class Listeners implements Listener
                     }
                 }
             }
+        }
+
+        if (useLands && plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
+        {
+            LandsHook landsHook;
+            if (plugin.getLandsHook() == null) landsHook = new LandsHook(plugin);
+            else landsHook = plugin.getLandsHook();
+
+            if (landsHook.getLandsAddon().getLandChunkHard(location.getWorld().getName(), location.getChunk().getX(), location.getChunk().getZ()) != null)
+                return false;
         }
 
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))

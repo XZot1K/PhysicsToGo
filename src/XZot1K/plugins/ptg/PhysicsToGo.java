@@ -3,6 +3,7 @@ package XZot1K.plugins.ptg;
 import XZot1K.plugins.ptg.core.Listeners;
 import XZot1K.plugins.ptg.core.PhysicsToGoCommand;
 import XZot1K.plugins.ptg.core.checkers.UpdateChecker;
+import XZot1K.plugins.ptg.core.internals.LandsHook;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -22,6 +23,7 @@ public class PhysicsToGo extends JavaPlugin
     public List<BlockState> savedStates;
     public ArrayList<UUID> savedFallingBlocks;
     private UpdateChecker updateChecker;
+    private LandsHook landsHook;
     private String serverVersion;
 
     @Override
@@ -113,5 +115,15 @@ public class PhysicsToGo extends JavaPlugin
     private void setServerVersion(String serverVersion)
     {
         this.serverVersion = serverVersion;
+    }
+
+    public LandsHook getLandsHook()
+    {
+        return landsHook;
+    }
+
+    public void setLandsHook(LandsHook landsHook)
+    {
+        this.landsHook = landsHook;
     }
 }
