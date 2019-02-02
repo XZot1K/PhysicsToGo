@@ -1,6 +1,7 @@
 package XZot1K.plugins.ptg.core;
 
 import XZot1K.plugins.ptg.PhysicsToGo;
+import XZot1K.plugins.ptg.api.events.HookCallEvent;
 import XZot1K.plugins.ptg.core.internals.LandsHook;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
@@ -620,6 +621,8 @@ public class Listeners implements Listener
     private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useKingdoms, boolean useLands,
                                 boolean useFactions, boolean useGP, boolean useASkyBlock, boolean useResidence, boolean useTowny)
     {
+        boolean safeLocation = true;
+
         if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
@@ -635,7 +638,7 @@ public class Listeners implements Listener
                     {
                         if (region.contains((int) location.getX(), (int) location.getY(), (int) location.getZ())
                                 && !isInList("hooks-options.world-guard.region-whitelist", region.getId()))
-                            return false;
+                            safeLocation = false;
                     }
                 }
             }
@@ -648,7 +651,7 @@ public class Listeners implements Listener
             else landsHook = plugin.getLandsHook();
 
             if (landsHook.getLandsAddon().getLandChunkHard(location.getWorld().getName(), location.getChunk().getX(), location.getChunk().getZ()) != null)
-                return false;
+                safeLocation = false;
         }
 
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
@@ -662,8 +665,7 @@ public class Listeners implements Listener
             if (plugin.getServer().getPluginManager().getPlugin("Kingdoms") != null)
             {
                 Land land = new Land(new SimpleChunkLocation(location.getChunk()));
-                if (land.getOwner() != null)
-                    return false;
+                if (land.getOwner() != null) safeLocation = false;
             }
         }
 
@@ -673,14 +675,14 @@ public class Listeners implements Listener
             {
                 FLocation fLocation = new FLocation(location);
                 com.massivecraft.factions.Faction factionAtLocation = Board.getInstance().getFactionAt(fLocation);
-                if (factionAtLocation != null && !(factionAtLocation.isWilderness() || factionAtLocation.isWarZone()))
-                    return false;
+                if (factionAtLocation != null && !factionAtLocation.isWilderness() && !factionAtLocation.isWarZone())
+                    safeLocation = false;
             } else
             {
                 com.massivecraft.factions.entity.Faction factionAtLocation = BoardColl.get().getFactionAt(PS.valueOf(location));
-                if (factionAtLocation != null && !(factionAtLocation.getComparisonName().equals(FactionColl.get().getSafezone().getComparisonName())
-                        || factionAtLocation.getComparisonName().equals(FactionColl.get().getWarzone().getComparisonName())))
-                    return false;
+                if (factionAtLocation != null && !factionAtLocation.getComparisonName().equals(FactionColl.get().getSafezone().getComparisonName())
+                        && !factionAtLocation.getComparisonName().equals(FactionColl.get().getWarzone().getComparisonName()))
+                    safeLocation = false;
             }
         }
 
@@ -690,7 +692,7 @@ public class Listeners implements Listener
             if (aSkyBlock != null)
             {
                 Island island = ASkyBlockAPI.getInstance().getIslandAt(location);
-                if (island != null) return false;
+                if (island != null) safeLocation = false;
             }
         }
 
@@ -700,8 +702,7 @@ public class Listeners implements Listener
             if (griefPrevention != null)
             {
                 Claim claimAtLocation = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
-                if (claimAtLocation != null)
-                    return false;
+                if (claimAtLocation != null) safeLocation = false;
             }
         }
 
@@ -711,8 +712,7 @@ public class Listeners implements Listener
             if (residence != null)
             {
                 ClaimedResidence res = Residence.getInstance().getResidenceManager().getByLoc(location);
-                if (res != null)
-                    return false;
+                if (res != null) safeLocation = false;
             }
         }
 
@@ -724,12 +724,16 @@ public class Listeners implements Listener
                 try
                 {
                     Town town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
-                    if (town != null) return false;
+                    if (town != null) safeLocation = false;
                 } catch (Exception ignored) {}
             }
         }
 
-        return true;
+        HookCallEvent hookCallEvent = new HookCallEvent(location, safeLocation);
+        plugin.getServer().getPluginManager().callEvent(hookCallEvent);
+        safeLocation = hookCallEvent.isSafeLocation();
+
+        return safeLocation;
     }
 
     private ArrayList<Location> getPlacedLocationMemory()
