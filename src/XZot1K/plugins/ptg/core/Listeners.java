@@ -3,6 +3,8 @@ package XZot1K.plugins.ptg.core;
 import XZot1K.plugins.ptg.PhysicsToGo;
 import XZot1K.plugins.ptg.api.events.HookCallEvent;
 import XZot1K.plugins.ptg.core.internals.LandsHook;
+import XZot1K.plugins.ptg.core.internals.WG_6;
+import XZot1K.plugins.ptg.core.internals.WG_7;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.massivecraft.factions.Board;
@@ -642,6 +644,12 @@ public class Listeners implements Listener
                     }
                 }
             }
+
+            if (plugin.getWorldGuard().getDescription().getVersion().toLowerCase().startsWith("6"))
+            {
+                if (!WG_6.passedWorldGuardHook(location)) safeLocation = false;
+            } else if (plugin.getWorldGuard().getDescription().getVersion().toLowerCase().startsWith("7"))
+            { if (!WG_7.passedWorldGuardHook(location)) safeLocation = false; }
         }
 
         if (useLands && plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
@@ -657,7 +665,7 @@ public class Listeners implements Listener
         if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
         {
             Kingdom kingdom = Feudal.getAPI().getKingdom(location);
-            return kingdom == null;
+            if (kingdom != null) safeLocation = false;
         }
 
         if (useKingdoms && plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook"))
