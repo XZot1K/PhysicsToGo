@@ -540,15 +540,28 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId())
-                    || e.getEntity().hasMetadata("P_T_G={'FALLING_BLOCK'}"))
+            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'FALLING_BLOCK'}"))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND,
-                        e.getBlock().getType().getId());
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form"))
+                {
                     e.setCancelled(true);
+                    return;
+                }
+
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
                     ((FallingBlock) e.getEntity()).setDropItem(false);
+                if (plugin.getConfig().getBoolean("explosive-options.block-physics-removal"))
+                    new BukkitRunnable()
+                    {
+
+                        @Override
+                        public void run()
+                        {
+                            e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                            e.getBlock().setType(Material.AIR);
+                        }
+                    }.runTaskLater(plugin, plugin.getConfig().getInt("explosive-options.block-physics-removal-delay"));
             }
         }
     }

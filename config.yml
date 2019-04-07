@@ -48,11 +48,15 @@ explosive-options:
   block-regeneration: true
   # If this is enabled falling blocks will form upon contact.
   block-physics-form: false
+  # If this is enabled falling blocks that are formed will be removed after the defined delay.
+  block-physics-removal: true
+  # This is the delay in which formed blocks are removed (Note: 20 ticks equals 1 second.)
+  block-physics-removal-delay: 60
   # Here is where you can customize options that effect the block regeneration.
   block-regeneration-options:
-    # This option is how fast each block is regenerated in ticks. (Note: 20 ticks equals 1 second.)
+    # This option is how fast each block is regenerated in ticks (Note: 20 ticks equals 1 second.)
     speed: 20
-    # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
+    # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
     delay: 20
     # This is the delay after the general regeneration for containers to be re-checked to ensure every item is restored.
     container-fix-rate: 40
@@ -95,8 +99,7 @@ explosive-options:
   blacklisted-worlds:
     - "world_the_end"
   # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
-  entity-explosion-blacklist:
-    - "CREEPER"
+  entity-explosion-blacklist: []
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
