@@ -57,11 +57,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 public class Listeners implements Listener
 {
 
     private PhysicsToGo plugin;
+    private Random random;
 
     private ArrayList<Location> blockLocationMemory, placedLocationMemory;
     private HashMap<Location, ItemStack[]> containers;
@@ -70,6 +72,7 @@ public class Listeners implements Listener
     public Listeners(PhysicsToGo plugin)
     {
         this.plugin = plugin;
+        random = new Random();
         setPlacedLocationMemory(new ArrayList<>());
         blockLocationMemory = new ArrayList<>();
         containers = new HashMap<>();
@@ -142,8 +145,7 @@ public class Listeners implements Listener
 
                             FallingBlock fallingBlock = e.getBlock().getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
                             fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                            if (!plugin.getConfig().getBoolean("tree-physic-options.physics-drops"))
-                                fallingBlock.setDropItem(false);
+                            fallingBlock.setDropItem(false);
                             plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
 
                             if (blockRegeneration)
@@ -335,11 +337,10 @@ public class Listeners implements Listener
 
                 if (blockPhysics)
                 {
-                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
-                            b.getData());
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5), b.getType(), b.getData());
                     fallingBlock.setDropItem(false);
-                    fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
-                    fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6), getRandomInRange(-0.5, 0.5)));
+                    fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
@@ -498,10 +499,9 @@ public class Listeners implements Listener
 
                 if (blockPhysics)
                 {
-                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation(), b.getType(),
-                            b.getData());
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5), b.getType(), b.getData());
                     fallingBlock.setDropItem(false);
-                    fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
+                    fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6), getRandomInRange(-0.5, 0.5)));
                     fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
@@ -581,7 +581,7 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
+            if (plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("tree-physic-options.physics-form"))
@@ -590,8 +590,9 @@ public class Listeners implements Listener
                     return;
                 }
 
-                if (!plugin.getConfig().getBoolean("tree-physic-options.physics-drops"))
-                    ((FallingBlock) e.getEntity()).setDropItem(false);
+                if (plugin.getConfig().getBoolean("tree-physic-options.physics-drops"))
+                    ((FallingBlock) e.getEntity()).setDropItem(true);
+
                 if (plugin.getConfig().getBoolean("tree-physic-options.physics-removal"))
                     new BukkitRunnable()
                     {
@@ -610,11 +611,12 @@ public class Listeners implements Listener
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form"))
                 {
+                    System.out.println("test");
                     e.setCancelled(true);
                     return;
                 }
 
-                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
+                if (plugin.getConfig().getBoolean("explosive-options.block-drops"))
                     ((FallingBlock) e.getEntity()).setDropItem(false);
                 if (plugin.getConfig().getBoolean("explosive-options.block-physics-removal"))
                     new BukkitRunnable()
@@ -819,6 +821,11 @@ public class Listeners implements Listener
         safeLocation = hookCallEvent.isSafeLocation();
 
         return safeLocation;
+    }
+
+    public double getRandomInRange(double min, double max)
+    {
+        return (min + (max - min) * random.nextDouble());
     }
 
     private ArrayList<Location> getPlacedLocationMemory()
