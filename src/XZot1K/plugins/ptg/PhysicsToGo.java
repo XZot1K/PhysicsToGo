@@ -14,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class PhysicsToGo extends JavaPlugin
@@ -21,7 +22,7 @@ public class PhysicsToGo extends JavaPlugin
 
     private static PhysicsToGo pluginInstance;
     public List<BlockState> savedStates;
-    public ArrayList<UUID> savedFallingBlocks;
+    public ArrayList<UUID> savedExplosiveFallingBlocks, savedTreeFallingBlocks;
     private UpdateChecker updateChecker;
     private LandsHook landsHook;
     private String serverVersion;
@@ -31,14 +32,15 @@ public class PhysicsToGo extends JavaPlugin
     {
         setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
         savedStates = new ArrayList<>();
-        savedFallingBlocks = new ArrayList<>();
+        savedExplosiveFallingBlocks = new ArrayList<>();
+        savedTreeFallingBlocks = new ArrayList<>();
         pluginInstance = this;
         updateChecker = new UpdateChecker(getPluginInstance(), 17181);
         saveDefaultConfig();
 
         getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cSetting up required requisites..."));
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
-        getCommand("ptg").setExecutor(new PhysicsToGoCommand(this));
+        Objects.requireNonNull(getCommand("ptg")).setExecutor(new PhysicsToGoCommand(this));
 
         if (updateChecker.checkForUpdates())
             getServer().getConsoleSender().sendMessage(
@@ -52,8 +54,7 @@ public class PhysicsToGo extends JavaPlugin
     @Override
     public void onDisable()
     {
-        getServer().getConsoleSender()
-                .sendMessage(colorText("&6&lPTG&r &7- &cPlease wait while a couple tasks are processed..."));
+        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cPlease wait while a couple tasks are processed..."));
         int restoreCounter = 0, removedFBCounter = 0;
 
         for (int i = -1; ++i < getServer().getWorlds().size(); )
@@ -62,7 +63,7 @@ public class PhysicsToGo extends JavaPlugin
             for (int k = -1; ++k < world.getEntities().size(); )
             {
                 Entity entity = world.getEntities().get(k);
-                if (entity.hasMetadata("P_T_G={'FALLING_BLOCK'}"))
+                if (entity.hasMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}") || entity.hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
                 {
                     entity.remove();
                     removedFBCounter += 1;

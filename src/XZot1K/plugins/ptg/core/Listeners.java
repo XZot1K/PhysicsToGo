@@ -21,8 +21,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
-import me.angeschossen.lands.api.landsaddons.LandsAddon;
-import me.angeschossen.lands.api.landsaddons.LandsAddons;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
@@ -58,6 +56,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class Listeners implements Listener
 {
@@ -84,7 +83,7 @@ public class Listeners implements Listener
         if (e.getPlayer().hasPermission("ptg.bypass.place") || !plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isInMaterialList("block-place-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true, true))
+                || !passedHooks(e.getBlock().getLocation()))
             return;
         if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel"))
         {
@@ -125,9 +124,51 @@ public class Listeners implements Listener
     @EventHandler
     public void onBreak(BlockBreakEvent e)
     {
+        if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics") && isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock()))
+        {
+            boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
+            int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"), delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
+                    speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
+            for (int i = -1; ++i < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); )
+            {
+                for (int x = -radius; ++x < radius; )
+                    for (int z = -radius; ++z < radius; )
+                    {
+                        Block block = e.getBlock().getRelative(x, i, z);
+                        if (isInMaterialList("tree-physic-options.effected-physic-materials", block))
+                        {
+                            BlockState blockState = block.getState();
+                            if (blockRegeneration) plugin.savedStates.add(blockState);
+
+                            FallingBlock fallingBlock = e.getBlock().getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
+                            fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                            if (!plugin.getConfig().getBoolean("tree-physic-options.physics-drops"))
+                                fallingBlock.setDropItem(false);
+                            plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+
+                            if (blockRegeneration)
+                            {
+                                new BukkitRunnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        blockState.update(true, false);
+                                        block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
+                                    }
+                                }.runTaskLater(plugin, delay);
+                                delay += speed;
+                            }
+
+                            block.setType(Material.AIR);
+                        }
+                    }
+            }
+        }
+
         if (e.getPlayer().hasPermission("ptg.bypass.break") || !plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
-                || !passedHooks(e.getBlock().getLocation(), true, true, true, true, true, true, true, true, true))
+                || !passedHooks(e.getBlock().getLocation()))
             return;
         if (isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
 
@@ -156,7 +197,7 @@ public class Listeners implements Listener
 
         if (!dropItems || getPlacedLocationMemory().contains(e.getBlock().getLocation()))
         {
-            e.getBlock().getLocation().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
+            Objects.requireNonNull(e.getBlock().getLocation().getWorld()).playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
             e.getBlock().setType(Material.AIR);
             if (getPlacedLocationMemory().contains(e.getBlock().getLocation()))
             {
@@ -253,7 +294,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true, true))
+                if (!passedHooks(b.getLocation()))
                     continue;
 
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
@@ -299,7 +340,7 @@ public class Listeners implements Listener
                     fallingBlock.setDropItem(false);
                     fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
                     fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                    plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
+                    plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
@@ -375,7 +416,7 @@ public class Listeners implements Listener
     @EventHandler
     public void onExplodeEntity(EntityExplodeEvent e)
     {
-        if (isInList("explosive-options.blacklisted-worlds", e.getLocation().getWorld().getName())
+        if (isInList("explosive-options.blacklisted-worlds", Objects.requireNonNull(e.getLocation().getWorld()).getName())
                 || isInList("explosive-options.entity-explosion-blacklist", e.getEntity().getType().name()))
             return;
         if (!plugin.getConfig().getBoolean("explosive-options.block-damage"))
@@ -416,7 +457,7 @@ public class Listeners implements Listener
                     continue;
                 }
 
-                if (!passedHooks(b.getLocation(), true, true, true, true, true, true, true, true, true))
+                if (!passedHooks(b.getLocation()))
                     continue;
 
                 if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
@@ -461,8 +502,8 @@ public class Listeners implements Listener
                             b.getData());
                     fallingBlock.setDropItem(false);
                     fallingBlock.setVelocity(new Vector((Math.random() < 0.5) ? 0 : 1, 1, (Math.random() < 0.5) ? 0 : 1));
-                    fallingBlock.setMetadata("P_T_G={'FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                    plugin.savedFallingBlocks.add(fallingBlock.getUniqueId());
+                    fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
@@ -540,7 +581,31 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'FALLING_BLOCK'}"))
+            if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
+            {
+                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                if (!plugin.getConfig().getBoolean("tree-physic-options.physics-form"))
+                {
+                    e.setCancelled(true);
+                    return;
+                }
+
+                if (!plugin.getConfig().getBoolean("tree-physic-options.physics-drops"))
+                    ((FallingBlock) e.getEntity()).setDropItem(false);
+                if (plugin.getConfig().getBoolean("tree-physic-options.physics-removal"))
+                    new BukkitRunnable()
+                    {
+
+                        @Override
+                        public void run()
+                        {
+                            e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                            e.getBlock().setType(Material.AIR);
+                        }
+                    }.runTaskLater(plugin, plugin.getConfig().getInt("tree-physic-options.physics-removal-delay"));
+            }
+
+            if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'EXPLOSION_FALLING_BLOCK'}"))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form"))
@@ -633,15 +698,14 @@ public class Listeners implements Listener
         return false;
     }
 
-    private boolean passedHooks(Location location, boolean useWorldGuard, boolean useFeudal, boolean useKingdoms, boolean useLands,
-                                boolean useFactions, boolean useGP, boolean useASkyBlock, boolean useResidence, boolean useTowny)
+    private boolean passedHooks(Location location)
     {
         boolean safeLocation = true;
 
-        if (useWorldGuard && plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
+        if (plugin.getConfig().getBoolean("hooks-options.world-guard.use-hook"))
         {
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-            RegionManager regionManager = container.get(BukkitAdapter.adapt(location.getWorld()));
+            RegionManager regionManager = container.get(BukkitAdapter.adapt(Objects.requireNonNull(location.getWorld())));
             if (regionManager != null)
             {
                 List<String> regionList = new ArrayList<>(regionManager.getRegions().keySet());
@@ -665,23 +729,23 @@ public class Listeners implements Listener
             { if (!WG_7.passedWorldGuardHook(location)) safeLocation = false; }
         }
 
-        if (useLands && plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
+        if (plugin.getConfig().getBoolean("hooks-options.lands.use-lands"))
         {
             LandsHook landsHook;
             if (plugin.getLandsHook() == null) landsHook = new LandsHook(plugin);
             else landsHook = plugin.getLandsHook();
 
-            if (landsHook.getLandsAddon().getLandChunkHard(location.getWorld().getName(), location.getChunk().getX(), location.getChunk().getZ()) != null)
+            if (landsHook.getLandsAddon().getLandChunkHard(Objects.requireNonNull(location.getWorld()).getName(), location.getChunk().getX(), location.getChunk().getZ()) != null)
                 safeLocation = false;
         }
 
-        if (useFeudal && plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
+        if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
         {
             Kingdom kingdom = Feudal.getAPI().getKingdom(location);
             if (kingdom != null) safeLocation = false;
         }
 
-        if (useKingdoms && plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook"))
+        if (plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook"))
         {
             if (plugin.getServer().getPluginManager().getPlugin("Kingdoms") != null)
             {
@@ -690,7 +754,7 @@ public class Listeners implements Listener
             }
         }
 
-        if (useFactions && plugin.getConfig().getBoolean("hooks-options.factions.use-factions"))
+        if (plugin.getConfig().getBoolean("hooks-options.factions.use-factions"))
         {
             if (plugin.getConfig().getBoolean("hooks-options.factions.factions-uuid"))
             {
@@ -707,7 +771,7 @@ public class Listeners implements Listener
             }
         }
 
-        if (useASkyBlock && plugin.getConfig().getBoolean("hooks-options.askyblock.use-askyblock"))
+        if (plugin.getConfig().getBoolean("hooks-options.askyblock.use-askyblock"))
         {
             Plugin aSkyBlock = plugin.getServer().getPluginManager().getPlugin("ASkyBlock");
             if (aSkyBlock != null)
@@ -717,7 +781,7 @@ public class Listeners implements Listener
             }
         }
 
-        if (useGP && plugin.getConfig().getBoolean("hooks-options.grief-preventation.use-grief-preventation"))
+        if (plugin.getConfig().getBoolean("hooks-options.grief-preventation.use-grief-preventation"))
         {
             Plugin griefPrevention = plugin.getServer().getPluginManager().getPlugin("GriefPrevention");
             if (griefPrevention != null)
@@ -727,7 +791,7 @@ public class Listeners implements Listener
             }
         }
 
-        if (useResidence && plugin.getConfig().getBoolean("hooks-options.residence.use-residence"))
+        if (plugin.getConfig().getBoolean("hooks-options.residence.use-residence"))
         {
             Plugin residence = plugin.getServer().getPluginManager().getPlugin("Residence");
             if (residence != null)
@@ -737,7 +801,7 @@ public class Listeners implements Listener
             }
         }
 
-        if (useTowny && plugin.getConfig().getBoolean("hooks-options.towny.use-towny"))
+        if (plugin.getConfig().getBoolean("hooks-options.towny.use-towny"))
         {
             Plugin towny = plugin.getServer().getPluginManager().getPlugin("Towny");
             if (towny != null)

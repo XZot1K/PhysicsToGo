@@ -129,6 +129,70 @@ block-break-options:
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
+tree-physic-options:
+  # If this is enabled, tree physics will be enabled.
+  tree-physics: true
+  # For performance, tree physics goes from current location to max height and around the broken block with radius below.
+  # This being said, note that blocks attached to other trees within this radius will be effected (Recommended value is 5).
+  tree-physics-radius: 5
+  # If this is enabled, falling tree blocks will form on the ground.
+  physics-form: false
+  # If this is enabled, falling tree blocks will drop their correct material drops (Natural drops).
+  physics-drops: false
+  # If this enabled, formed falling blocks will be removed after the duration defined below.
+  physics-removal: false
+  # This is the formed falling block removal delay in ticks (20 ticks = 1 second).
+  physics-removal-delay: 20
+  # Here is where tree regeneration can be configured.
+  tree-regeneration:
+    # If this is enabled, tree physics will be regenerated.
+    regeneration: true
+    # This option is how fast each block is regenerated in ticks (Note: 20 ticks equals 1 second.)
+    speed: 20
+    # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # When an effected break material is destroyed the materials in this list will be effected by physics and dropped to
+  # the ground if attached to the broken block (Format: <Material>:<Durability>). Use -1 for all durabilities.
+  effected-physic-materials:
+    - "ACACIA_LEAVES:-1"
+    - "BIRCH_LEAVES:-1"
+    - "DARK_OAK_LEAVES:-1"
+    - "JUNGLE_LEAVES:-1"
+    - "OAK_LEAVES:-1"
+    - "SPRUCE_LEAVES:-1"
+    - "LEAVES:-1"
+    - "LEAVES_2:-1"
+    - "ACACIA_LOG:-1"
+    - "BIRCH_LOG:-1"
+    - "DARK_OAK_LOG:-1"
+    - "JUNGLE_LOG:-1"
+    - "OAK_LOG:-1"
+    - "SPRUCE_LOG:-1"
+    - "STRIPPED_ACACIA_LOG:-1"
+    - "STRIPPED_BIRCH_LOG:-1"
+    - "STRIPPED_DARK_OAK_LOG:-1"
+    - "STRIPPED_JUNGLE_LOG:-1"
+    - "STRIPPED_OAK_LOG:-1"
+    - "STRIPPED_SPRUCE_LOG:-1"
+    - "LOG:-1"
+    - "LOG_2:-1"
+  # These are the materials that will begin tree physics when broken. (Format: <Material>:<Durability>). Use -1 for all durabilities.
+  effected-break-materials:
+    - "ACACIA_LOG:-1"
+    - "BIRCH_LOG:-1"
+    - "DARK_OAK_LOG:-1"
+    - "JUNGLE_LOG:-1"
+    - "OAK_LOG:-1"
+    - "SPRUCE_LOG:-1"
+    - "STRIPPED_ACACIA_LOG:-1"
+    - "STRIPPED_BIRCH_LOG:-1"
+    - "STRIPPED_DARK_OAK_LOG:-1"
+    - "STRIPPED_JUNGLE_LOG:-1"
+    - "STRIPPED_OAK_LOG:-1"
+    - "STRIPPED_SPRUCE_LOG:-1"
+    - "LOG:-1"
+    - "LOG_2:-1"
+
 block-place-options:
   # If this is enabled PTG will listen when a player places a block and perform effects.
   block-place-event: false
