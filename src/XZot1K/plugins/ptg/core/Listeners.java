@@ -127,51 +127,53 @@ public class Listeners implements Listener
     @EventHandler
     public void onBreak(BlockBreakEvent e)
     {
-        if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics") && isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock()))
+        if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics"))
         {
-            boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
-            int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"), delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
-                    speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
-            for (int i = -1; ++i < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); )
+            if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock()))
             {
-                for (int x = -radius; ++x < radius; )
-                    for (int z = -radius; ++z < radius; )
-                    {
-                        Block block = e.getBlock().getRelative(x, i, z);
-                        if (isInMaterialList("tree-physic-options.effected-physic-materials", block))
+                boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
+                int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"), delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
+                        speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
+                for (int i = -1; ++i < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); )
+                {
+                    for (int x = -radius; ++x < radius; )
+                        for (int z = -radius; ++z < radius; )
                         {
-                            BlockState blockState = block.getState();
-                            if (blockRegeneration) plugin.savedStates.add(blockState);
-
-                            FallingBlock fallingBlock = e.getBlock().getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
-                            fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                            fallingBlock.setDropItem(false);
-                            plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
-
-                            if (blockRegeneration)
+                            Block block = e.getBlock().getRelative(x, i, z);
+                            if (isInMaterialList("tree-physic-options.effected-physic-materials", block))
                             {
-                                new BukkitRunnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        blockState.update(true, false);
-                                        block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
-                                    }
-                                }.runTaskLater(plugin, delay);
-                                delay += speed;
-                            }
+                                BlockState blockState = block.getState();
+                                if (blockRegeneration) plugin.savedStates.add(blockState);
 
-                            block.setType(Material.AIR);
+                                FallingBlock fallingBlock = e.getBlock().getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
+                                fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                                fallingBlock.setDropItem(false);
+                                plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+
+                                if (blockRegeneration)
+                                {
+                                    new BukkitRunnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            blockState.update(true, false);
+                                            block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
+                                        }
+                                    }.runTaskLater(plugin, delay);
+                                    delay += speed;
+                                }
+
+                                block.setType(Material.AIR);
+                            }
                         }
-                    }
+                }
             }
         }
 
         if (e.getPlayer().hasPermission("ptg.bypass.break") || !plugin.getConfig().getBoolean("block-break-options.block-break-event")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
-                || !passedHooks(e.getBlock().getLocation()))
-            return;
+                || !passedHooks(e.getBlock().getLocation())) return;
         if (isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
 
         int delay = plugin.getConfig().getInt("block-break-options.block-regeneration-options.delay");
@@ -581,7 +583,8 @@ public class Listeners implements Listener
     {
         if (e.getEntity() instanceof FallingBlock)
         {
-            if (plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
+            if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")
+                    && plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
             {
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("tree-physic-options.physics-form"))
@@ -611,7 +614,6 @@ public class Listeners implements Listener
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form"))
                 {
-                    System.out.println("test");
                     e.setCancelled(true);
                     return;
                 }
