@@ -589,6 +589,20 @@ public class Listeners implements Listener
                 e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("tree-physic-options.physics-form"))
                 {
+
+                    if (plugin.getConfig().getBoolean("tree-physic-options.tree-drops"))
+                    {
+                        BlockState blockState = e.getBlock().getState();
+                        plugin.savedStates.add(blockState);
+
+                        e.getBlock().setType(e.getTo());
+                        List<ItemStack> itemStacks = new ArrayList<>(e.getBlock().getDrops());
+                        for (int i = -1; ++i < itemStacks.size(); )
+                            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), itemStacks.get(i));
+
+                        blockState.update(true, true);
+                    }
+
                     e.setCancelled(true);
                     return;
                 }

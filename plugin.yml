@@ -1,13 +1,13 @@
 name: PhysicsToGo
-version: 1.8.3-C_SNAPSHOT
+version: 1.8.3-C
 api-version: 1.13
 main: XZot1K.plugins.ptg.PhysicsToGo
 author: XZot1K
 description: PhysicsToGo is a lightweight physics & environmental regeneration plugin.
 softdepend: [WorldGuard, WorldEdit, Factions, MassiveCore, Residence, Towny, Feudal, Kingdoms]
 commands:
-   ptg:
-     default: op
+  ptg:
+    default: op
 permissions:
   ptg.bypass:
     default: op

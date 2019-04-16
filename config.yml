@@ -137,7 +137,10 @@ tree-physic-options:
   tree-physics-radius: 5
   # If this is enabled, falling tree blocks will form on the ground.
   physics-form: false
-  # If this is enabled, falling tree blocks will drop their correct material drops (Natural drops).
+  # If this is enabled, falling tree blocks will drop their correct material drops upon impact (Natural drops). (This requires "physics-form" to be disabled).
+  # THIS IS NOT THE SAME AS "physics-drops".
+  tree-drops: true
+  # If this is enabled, falling tree block entities will drop their items if harmed ("physics-form" must be enabled).
   physics-drops: false
   # If this enabled, formed falling blocks will be removed after the duration defined below.
   physics-removal: false
