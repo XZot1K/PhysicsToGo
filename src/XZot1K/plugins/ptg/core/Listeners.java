@@ -95,10 +95,11 @@ public class Listeners implements Listener
         }
 
         int delay = plugin.getConfig().getInt("block-place-options.block-reversion-options.delay");
-        boolean blockReversion = plugin.getConfig().getBoolean("block-place-options.block-reversion");
+        boolean blockReversion = plugin.getConfig().getBoolean("block-place-options.block-reversion"),
+                reversionAboveHeight = plugin.getConfig().getBoolean("block-place-options.reversion-above-height");
 
         int heightLimit = plugin.getConfig().getInt("block-place-options.reversion-height");
-        if (blockReversion && (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))
+        if (blockReversion && (reversionAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit) : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit)))
         {
             Material previousMaterial = e.getBlockReplacedState().getType();
             byte previousData = e.getBlockReplacedState().getRawData();
@@ -210,8 +211,9 @@ public class Listeners implements Listener
             }
         }
 
+        boolean regenerationAboveHeight = plugin.getConfig().getBoolean("block-break-options.regeneration-above-height");
         int heightLimit = plugin.getConfig().getInt("block-break-options.regeneration-height");
-        if (blockRegeneration && (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))
+        if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit) : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit)))
         {
             if (!blockLocationMemory.contains(e.getBlock().getLocation()))
                 blockLocationMemory.add(e.getBlock().getLocation());
@@ -346,8 +348,9 @@ public class Listeners implements Listener
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
+                boolean regenerationAboveHeight = plugin.getConfig().getBoolean("explosive-options.regeneration-above-height");
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
-                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
+                if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || b.getY() >= heightLimit) : (heightLimit <= -1 || b.getY() <= heightLimit)))
                 {
                     if (!blockLocationMemory.contains(b.getLocation()))
                         blockLocationMemory.add(b.getLocation());
@@ -508,8 +511,9 @@ public class Listeners implements Listener
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
+                boolean regenerationAboveHeight = plugin.getConfig().getBoolean("explosive-options.regeneration-above-height");
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
-                if (blockRegeneration && (heightLimit <= -1 || b.getY() <= heightLimit))
+                if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || b.getY() >= heightLimit) : (heightLimit <= -1 || b.getY() <= heightLimit)))
                 {
                     if (!blockLocationMemory.contains(b.getLocation()))
                         blockLocationMemory.add(b.getLocation());

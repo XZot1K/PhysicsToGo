@@ -100,6 +100,8 @@ explosive-options:
     - "world_the_end"
   # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
   entity-explosion-blacklist: []
+  # If this is enabled, regeneration effect will only occur above the set regeneration height.
+  regeneration-above-height: false
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
@@ -126,6 +128,8 @@ block-break-options:
   # The worlds inside the list below will not be effected by any player block damage modified by PTG.
   blacklisted-worlds:
     - "world_the_end"
+  # If this is enabled, regeneration effect will only occur above the set regeneration height.
+  regeneration-above-height: false
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   regeneration-height: -1
 
@@ -214,6 +218,8 @@ block-place-options:
   # The worlds inside the list below will not be effected by any player placement modifications by PTG.
   blacklisted-worlds:
     - "world_the_end"
+  # If this is enabled, reversion effect will only occur above the set reversion height.
+  reversion-above-height: false
   # This tells PTG to regenerate block only if they are below the defined Y-axis below.
   # (Note: For block placing blocks will not be 'reverted' unless below/equal to the defined height below.)
   reversion-height: -1
