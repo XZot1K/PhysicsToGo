@@ -108,12 +108,13 @@ public class Listeners implements Listener
             {
                 Material placedMaterial = e.getBlock().getType();
                 e.getBlock().setType(previousMaterial);
-                if (!plugin.getServerVersion().startsWith("v1_13"))
+                if (!plugin.getServerVersion().startsWith("v1_13") && !plugin.getServerVersion().startsWith("v1_14"))
                 {
                     try
                     {
                         Method closeMethod = e.getBlock().getClass().getMethod("setData", Short.class);
-                        if (closeMethod != null) closeMethod.invoke(e.getBlock().getClass(), (short) previousData);
+                        if (closeMethod != null)
+                            closeMethod.invoke(e.getBlock().getClass(), (short) previousData);
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
                 }
 
