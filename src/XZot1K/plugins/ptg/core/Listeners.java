@@ -118,9 +118,9 @@ public class Listeners implements Listener
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
                 }
 
-                e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
-                        e.getBlock().getType() == Material.AIR ? placedMaterial.getId()
-                                : e.getBlock().getType().getId());
+                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                        || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType() == Material.AIR ? placedMaterial.getId() : e.getBlock().getType().getId());
             }, delay);
         }
     }
@@ -160,7 +160,9 @@ public class Listeners implements Listener
                                         public void run()
                                         {
                                             blockState.update(true, false);
-                                            block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
+                                            if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                                                    || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                                                block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
                                         }
                                     }.runTaskLater(plugin, delay);
                                     delay += speed;
@@ -203,7 +205,9 @@ public class Listeners implements Listener
 
         if (!dropItems || getPlacedLocationMemory().contains(e.getBlock().getLocation()))
         {
-            Objects.requireNonNull(e.getBlock().getLocation().getWorld()).playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
+            if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                    || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                Objects.requireNonNull(e.getBlock().getLocation().getWorld()).playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, 1);
             e.getBlock().setType(Material.AIR);
             if (getPlacedLocationMemory().contains(e.getBlock().getLocation()))
             {
@@ -221,8 +225,9 @@ public class Listeners implements Listener
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
                 blockState.update(true, false);
-                e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND,
-                        e.getBlock().getType().getId());
+                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                        || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 Block relative1 = e.getBlock().getRelative(BlockFace.DOWN),
                         relative2 = e.getBlock().getRelative(BlockFace.UP);
                 relative1.getState().update(true, false);
@@ -358,7 +363,9 @@ public class Listeners implements Listener
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
                         state.update(true, false);
-                        b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                        if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                                || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
                         Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
                         relative1.getState().update(true, false);
                         relative2.getState().update(true, false);
@@ -521,7 +528,9 @@ public class Listeners implements Listener
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
                         state.update(true, false);
-                        b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
+                        if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                                || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                            b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
                         Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
                         relative1.getState().update(true, false);
                         relative2.getState().update(true, false);
@@ -591,7 +600,9 @@ public class Listeners implements Listener
             if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")
                     && plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                        || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                    e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("tree-physic-options.physics-form"))
                 {
 
@@ -622,7 +633,9 @@ public class Listeners implements Listener
                         @Override
                         public void run()
                         {
-                            e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                            if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                                    || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                             e.getBlock().setType(Material.AIR);
                         }
                     }.runTaskLater(plugin, plugin.getConfig().getInt("tree-physic-options.physics-removal-delay"));
@@ -630,7 +643,9 @@ public class Listeners implements Listener
 
             if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'EXPLOSION_FALLING_BLOCK'}"))
             {
-                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                        || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                    e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 if (!plugin.getConfig().getBoolean("explosive-options.block-physics-form"))
                 {
                     e.setCancelled(true);
@@ -646,7 +661,9 @@ public class Listeners implements Listener
                         @Override
                         public void run()
                         {
-                            e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
+                            if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                                    || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                                e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                             e.getBlock().setType(Material.AIR);
                         }
                     }.runTaskLater(plugin, plugin.getConfig().getInt("explosive-options.block-physics-removal-delay"));
