@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class PhysicsToGo extends JavaPlugin
 {
@@ -38,23 +39,20 @@ public class PhysicsToGo extends JavaPlugin
         updateChecker = new UpdateChecker(getPluginInstance(), 17181);
         saveDefaultConfig();
 
-        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cSetting up required requisites..."));
+        log(Level.INFO, "Setting up required requisites...");
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         Objects.requireNonNull(getCommand("ptg")).setExecutor(new PhysicsToGoCommand(this));
 
         if (updateChecker.checkForUpdates())
-            getServer().getConsoleSender().sendMessage(
-                    colorText("&6&lPTG&r &7- &cThere seems to be a new version on the PhysicsToGo page."));
-        else
-            getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &aEverything is up to date!"));
-        getServer().getConsoleSender().sendMessage(colorText(
-                "&6&lPTG&r &7- &aVersion &e" + getDescription().getVersion() + " &ahas been successfully enabled!"));
+            log(Level.INFO, "There seems to be a new version on the PhysicsToGo page.");
+        else log(Level.INFO, "Everything is up to date!");
+        log(Level.INFO, "Version " + getDescription().getVersion() + " has been successfully enabled!");
     }
 
     @Override
     public void onDisable()
     {
-        getServer().getConsoleSender().sendMessage(colorText("&6&lPTG&r &7- &cPlease wait while a couple tasks are processed..."));
+        log(Level.INFO, "Please wait while a couple tasks are processed...");
         int restoreCounter = 0, removedFBCounter = 0;
 
         for (int i = -1; ++i < getServer().getWorlds().size(); )
@@ -80,10 +78,13 @@ public class PhysicsToGo extends JavaPlugin
         }
 
         savedStates.clear();
-        getServer().getConsoleSender().sendMessage(
-                colorText("&6&lPTG&r &7- &e" + removedFBCounter + " &afalling blocks were successfully removed!"));
-        getServer().getConsoleSender().sendMessage(
-                colorText("&6&lPTG&r &7- &e" + restoreCounter + " &ablock states were successfully restored!"));
+        log(Level.INFO, removedFBCounter + " falling blocks were successfully removed!");
+        log(Level.INFO, restoreCounter + " block states were successfully restored!");
+    }
+
+    public void log(Level level, String message)
+    {
+        getServer().getLogger().log(level, "[" + getDescription().getName() + "] " + message);
     }
 
     public WorldGuardPlugin getWorldGuard()
