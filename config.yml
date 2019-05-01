@@ -9,8 +9,11 @@ hooks-options:
   world-guard:
     # This toggles the WorldGuard hook.
     use-hook: false
-    # Regions within this list will allow PTG to perform its magic inside each of them.
-    region-whitelist:
+    # I this option is enabled, the region list will act as a blacklist, otherwise it will act as a whitelist.
+    blacklist: false
+    # Regions within this list will allow or prevent PTG to perform its magic inside each of them. Depending on the
+    # option above.
+    region-list:
       - "allowed_zone"
   feudal:
     # If this is enabled, physics to go features will not work within claimed land.
@@ -55,11 +58,9 @@ explosive-options:
   # Here is where you can customize options that effect the block regeneration.
   block-regeneration-options:
     # This option is how fast each block is regenerated in ticks (Note: 20 ticks equals 1 second.)
-    speed: 20
+    speed: 5
     # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
     delay: 20
-    # This is the delay after the general regeneration for containers to be re-checked to ensure every item is restored.
-    container-fix-rate: 40
   # Materials inside the list below will be avoided by any regeneration or physic effects involved with explosions.
   # (Note: Set the durability to -1 to ignore durability)
   effected-material-blacklist:
@@ -77,19 +78,6 @@ explosive-options:
     - "SPRUCE_DOOR:-1"
   # When blocks are damaged from explosions, should the effected blocks drop their relative items?
   block-drops: false
-  # Drop watch is a list of materials that are double checked during explosions to ensure blocks don't drop items.
-  drop-watch:
-    - "BEETROOT_SEEDS:-1"
-    - "WHEAT_SEEDS:-1"
-    - "CROPS:-1"
-    - "CARROT:-1"
-    - "CARROTS:-1"
-    - "POTATO:-1"
-    - "POTATOES:-1"
-    - "BEETROOT_BLOCK:-1"
-    - "BEETROOTS:-1"
-    - "BEETROOT:-1"
-    - "WHEAT:-1"
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
   block-restoration-memory: true
   # Should destroyed containers drop their items?

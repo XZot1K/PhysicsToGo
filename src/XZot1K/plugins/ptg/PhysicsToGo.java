@@ -4,6 +4,7 @@ import XZot1K.plugins.ptg.core.Listeners;
 import XZot1K.plugins.ptg.core.PhysicsToGoCommand;
 import XZot1K.plugins.ptg.core.checkers.UpdateChecker;
 import XZot1K.plugins.ptg.core.internals.LandsHook;
+import XZot1K.plugins.ptg.core.objects.DoubleChest;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -23,6 +24,7 @@ public class PhysicsToGo extends JavaPlugin
 
     private static PhysicsToGo pluginInstance;
     public List<BlockState> savedStates;
+    public List<DoubleChest> savedDoubleChests;
     public ArrayList<UUID> savedExplosiveFallingBlocks, savedTreeFallingBlocks;
     private UpdateChecker updateChecker;
     private LandsHook landsHook;
@@ -35,6 +37,7 @@ public class PhysicsToGo extends JavaPlugin
         savedStates = new ArrayList<>();
         savedExplosiveFallingBlocks = new ArrayList<>();
         savedTreeFallingBlocks = new ArrayList<>();
+        setSavedDoubleChests(new ArrayList<>());
         pluginInstance = this;
         updateChecker = new UpdateChecker(getPluginInstance(), 17181);
         saveDefaultConfig();
@@ -77,7 +80,14 @@ public class PhysicsToGo extends JavaPlugin
             restoreCounter += 1;
         }
 
+        for (int i = -1; ++i < getSavedDoubleChests().size(); )
+        {
+            DoubleChest doubleChest = getSavedDoubleChests().get(i);
+            doubleChest.restore();
+        }
+
         savedStates.clear();
+        getSavedDoubleChests().clear();
         log(Level.INFO, removedFBCounter + " falling blocks were successfully removed!");
         log(Level.INFO, restoreCounter + " block states were successfully restored!");
     }
@@ -127,5 +137,15 @@ public class PhysicsToGo extends JavaPlugin
     public void setLandsHook(LandsHook landsHook)
     {
         this.landsHook = landsHook;
+    }
+
+    private void setSavedDoubleChests(List<DoubleChest> savedDoubleChests)
+    {
+        this.savedDoubleChests = savedDoubleChests;
+    }
+
+    public List<DoubleChest> getSavedDoubleChests()
+    {
+        return savedDoubleChests;
     }
 }

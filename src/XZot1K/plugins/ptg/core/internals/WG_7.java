@@ -16,6 +16,7 @@ public class WG_7
 
     public static boolean passedWorldGuardHook(Location location)
     {
+        boolean isBlacklist = PhysicsToGo.getPluginInstance().getConfig().getBoolean("hooks-options.world-guard.blacklist");
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         com.sk89q.worldedit.util.Location worldEditLocation = BukkitAdapter.adapt(location);
 
@@ -27,7 +28,7 @@ public class WG_7
         for (int i = -1; ++i < regionList.size(); )
         {
             ProtectedRegion protectedRegion = regionList.get(i);
-            if (!isInList(regionWhitelist, protectedRegion.getId())) return false;
+            if (isBlacklist == isInList(regionWhitelist, protectedRegion.getId())) return false;
         }
 
         return true;
