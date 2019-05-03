@@ -83,6 +83,8 @@ explosive-options:
   # Should destroyed containers drop their items?
   # (Note: The items will be restored inside the container if the above option is enabled.)
   container-drops: false
+  # This is the fuse set for TNT handled inside of the explosive radius.
+  tnt-fuse: 2
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
     - "world_the_end"

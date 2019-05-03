@@ -21,12 +21,7 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
-import org.bukkit.block.Sign;
+import org.bukkit.block.*;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
@@ -50,11 +45,7 @@ import us.forseth11.feudal.kingdoms.Kingdom;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class Listeners implements Listener
 {
@@ -65,6 +56,7 @@ public class Listeners implements Listener
     private ArrayList<Location> blockLocationMemory, placedLocationMemory;
     private HashMap<Location, ItemStack[]> containers;
     private HashMap<Location, String[]> signs;
+    private List<Location> restoreLocations = new ArrayList<>();
 
 
     public Listeners(PhysicsToGo plugin)
@@ -273,12 +265,16 @@ public class Listeners implements Listener
         {
             boolean restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory");
             int delay = plugin.getConfig().getInt("explosive-options.block-regeneration-options.delay"),
-                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed");
+                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed"),
+                    tntFuse = plugin.getConfig().getInt("explosive-options.tnt-fuse");
             final int[] regenerationCounter = {0};
 
-            List<Location> restoreLocations = new ArrayList<>();
             List<Block> blocks = new ArrayList<>(e.blockList());
             sortFromLowestToHighest(blocks);
+
+            boolean blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                    containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
+                    blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
 
             for (int i = -1; ++i < blocks.size(); )
             {
@@ -311,54 +307,58 @@ public class Listeners implements Listener
                 if (!passedHooks(b.getLocation()))
                     continue;
 
-                boolean blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
-                        containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
-                if (blockRegeneration) plugin.savedStates.add(state);
-
                 if (b.getType() == Material.TNT)
                 {
                     b.setType(Material.AIR);
                     state.setType(Material.AIR);
                     TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
-                    primed.setFuseTicks(80);
-                    plugin.savedStates.remove(state);
-                    continue;
+                    primed.setFuseTicks(tntFuse);
                 }
 
-                if (!restorationMemory)
+                if (blockRegeneration)
+                {
+                    plugin.savedStates.add(state);
+
+                    if (restorationMemory)
+                    {
+                        if (state instanceof InventoryHolder)
+                        {
+                            if (!restoreLocations.contains(b.getLocation())) ;
+                            {
+                                InventoryHolder ih = (InventoryHolder) state;
+                                if (ih.getInventory().getHolder() instanceof DoubleChest && (plugin.getServerVersion().startsWith("v1_13")
+                                        || plugin.getServerVersion().startsWith("v1_14")))
+                                {
+                                    Chest chest = (Chest) state;
+                                    DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
+                                    Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
+                                    XZot1K.plugins.ptg.core.objects.DoubleChest doubleChest = new XZot1K.plugins.ptg.core.objects.DoubleChest(plugin,
+                                            Objects.requireNonNull(left).getLocation(), Objects.requireNonNull(right).getLocation(),
+                                            ((org.bukkit.block.data.type.Chest) chest.getBlockData()).getFacing(), dc.getInventory().getContents().clone());
+                                    plugin.getSavedDoubleChests().add(doubleChest);
+                                } else
+                                {
+                                    restoreLocations.add(b.getLocation());
+                                    containers.put(b.getLocation(), ih.getInventory().getContents().clone());
+                                    restoreLocations.add(b.getLocation());
+                                }
+                            }
+                        } else if (b.getState() instanceof Sign)
+                        {
+                            Sign sign = (Sign) state;
+                            signs.put(b.getLocation(), sign.getLines());
+                        }
+                    }
+                }
+
+                if (restorationMemory && !containerDrops)
                 {
                     if (state instanceof InventoryHolder)
                     {
                         InventoryHolder ih = (InventoryHolder) state;
-                        if (!containerDrops) ih.getInventory().getHolder().getInventory().clear();
+                        if (!containerDrops) ih.getInventory().clear();
                     }
                 }
-
-                if (blockRegeneration && restorationMemory)
-                    if (state instanceof InventoryHolder)
-                    {
-                        InventoryHolder ih = (InventoryHolder) state;
-                        if (ih.getInventory().getHolder() instanceof DoubleChest && plugin.getServerVersion().startsWith("v1_13") || plugin.getServerVersion().startsWith("v1_14"))
-                        {
-                            Chest chest = (Chest) state;
-                            DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
-                            Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
-                            XZot1K.plugins.ptg.core.objects.DoubleChest doubleChest = new XZot1K.plugins.ptg.core.objects.DoubleChest(plugin,
-                                    Objects.requireNonNull(left).getLocation(), Objects.requireNonNull(right).getLocation(),
-                                    ((org.bukkit.block.data.type.Chest) chest.getBlockData()).getFacing(), dc.getInventory().getContents().clone());
-                            plugin.getSavedDoubleChests().add(doubleChest);
-                        } else
-                        {
-                            restoreLocations.add(b.getLocation());
-                            containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                            restoreLocations.add(b.getLocation());
-                        }
-                    } else if (b.getState() instanceof Sign)
-                    {
-                        Sign sign = (Sign) state;
-                        signs.put(b.getLocation(), sign.getLines());
-                    }
 
                 if (blockPhysics)
                 {
@@ -369,7 +369,11 @@ public class Listeners implements Listener
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
-                if (!plugin.getConfig().getBoolean("explosive-options.block-drops")) b.setType(Material.AIR);
+                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
+                {
+                    e.setYield(0);
+                    b.setType(Material.AIR);
+                }
 
                 boolean regenerationAboveHeight = plugin.getConfig().getBoolean("explosive-options.regeneration-above-height");
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
@@ -446,6 +450,7 @@ public class Listeners implements Listener
                             {
                                 Location location = restoreLocations.get(i);
                                 Block block = location.getBlock();
+                                System.out.println(block.getType());
                                 if (block.getState() instanceof InventoryHolder && containers.containsKey(location))
                                 {
                                     InventoryHolder ih = (InventoryHolder) block.getState();
@@ -484,12 +489,16 @@ public class Listeners implements Listener
         {
             boolean restorationMemory = plugin.getConfig().getBoolean("explosive-options.block-restoration-memory");
             int delay = plugin.getConfig().getInt("explosive-options.block-regeneration-options.delay"),
-                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed");
+                    speed = plugin.getConfig().getInt("explosive-options.block-regeneration-options.speed"),
+                    tntFuse = plugin.getConfig().getInt("explosive-options.tnt-fuse");
             final int[] regenerationCounter = {0};
 
-            List<Location> restoreLocations = new ArrayList<>();
             List<Block> blocks = new ArrayList<>(e.blockList());
             sortFromLowestToHighest(blocks);
+
+            boolean blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
+                    containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
+                    blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
 
             for (int i = -1; ++i < blocks.size(); )
             {
@@ -522,54 +531,58 @@ public class Listeners implements Listener
                 if (!passedHooks(b.getLocation()))
                     continue;
 
-                boolean blockPhysics = plugin.getConfig().getBoolean("explosive-options.block-physics"),
-                        containerDrops = plugin.getConfig().getBoolean("explosive-options.container-drops"),
-                        blockRegeneration = plugin.getConfig().getBoolean("explosive-options.block-regeneration");
-                if (blockRegeneration) plugin.savedStates.add(state);
-
                 if (b.getType() == Material.TNT)
                 {
                     b.setType(Material.AIR);
                     state.setType(Material.AIR);
                     TNTPrimed primed = b.getWorld().spawn(b.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
-                    primed.setFuseTicks(80);
-                    plugin.savedStates.remove(state);
-                    continue;
+                    primed.setFuseTicks(tntFuse);
                 }
 
-                if (!restorationMemory)
+                if (blockRegeneration)
+                {
+                    plugin.savedStates.add(state);
+
+                    if (restorationMemory)
+                    {
+                        if (state instanceof InventoryHolder)
+                        {
+                            if (!restoreLocations.contains(b.getLocation())) ;
+                            {
+                                InventoryHolder ih = (InventoryHolder) state;
+                                if (ih.getInventory().getHolder() instanceof DoubleChest && (plugin.getServerVersion().startsWith("v1_13")
+                                        || plugin.getServerVersion().startsWith("v1_14")))
+                                {
+                                    Chest chest = (Chest) state;
+                                    DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
+                                    Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
+                                    XZot1K.plugins.ptg.core.objects.DoubleChest doubleChest = new XZot1K.plugins.ptg.core.objects.DoubleChest(plugin,
+                                            Objects.requireNonNull(left).getLocation(), Objects.requireNonNull(right).getLocation(),
+                                            ((org.bukkit.block.data.type.Chest) chest.getBlockData()).getFacing(), dc.getInventory().getContents().clone());
+                                    plugin.getSavedDoubleChests().add(doubleChest);
+                                } else
+                                {
+                                    restoreLocations.add(b.getLocation());
+                                    containers.put(b.getLocation(), ih.getInventory().getContents().clone());
+                                    restoreLocations.add(b.getLocation());
+                                }
+                            }
+                        } else if (b.getState() instanceof Sign)
+                        {
+                            Sign sign = (Sign) state;
+                            signs.put(b.getLocation(), sign.getLines());
+                        }
+                    }
+                }
+
+                if (restorationMemory && !containerDrops)
                 {
                     if (state instanceof InventoryHolder)
                     {
                         InventoryHolder ih = (InventoryHolder) state;
-                        if (!containerDrops) ih.getInventory().getHolder().getInventory().clear();
+                        if (!containerDrops) ih.getInventory().clear();
                     }
                 }
-
-                if (blockRegeneration && restorationMemory)
-                    if (state instanceof InventoryHolder)
-                    {
-                        InventoryHolder ih = (InventoryHolder) state;
-                        if (ih.getInventory().getHolder() instanceof DoubleChest && plugin.getServerVersion().startsWith("v1_13") || plugin.getServerVersion().startsWith("v1_14"))
-                        {
-                            Chest chest = (Chest) state;
-                            DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
-                            Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
-                            XZot1K.plugins.ptg.core.objects.DoubleChest doubleChest = new XZot1K.plugins.ptg.core.objects.DoubleChest(plugin,
-                                    Objects.requireNonNull(left).getLocation(), Objects.requireNonNull(right).getLocation(),
-                                    ((org.bukkit.block.data.type.Chest) chest.getBlockData()).getFacing(), dc.getInventory().getContents().clone());
-                            plugin.getSavedDoubleChests().add(doubleChest);
-                        } else
-                        {
-                            restoreLocations.add(b.getLocation());
-                            containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                            restoreLocations.add(b.getLocation());
-                        }
-                    } else if (b.getState() instanceof Sign)
-                    {
-                        Sign sign = (Sign) state;
-                        signs.put(b.getLocation(), sign.getLines());
-                    }
 
                 if (blockPhysics)
                 {
@@ -580,7 +593,11 @@ public class Listeners implements Listener
                     plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
                 }
 
-                if (!plugin.getConfig().getBoolean("explosive-options.block-drops")) b.setType(Material.AIR);
+                if (!plugin.getConfig().getBoolean("explosive-options.block-drops"))
+                {
+                    e.setYield(0);
+                    b.setType(Material.AIR);
+                }
 
                 boolean regenerationAboveHeight = plugin.getConfig().getBoolean("explosive-options.regeneration-above-height");
                 int heightLimit = plugin.getConfig().getInt("explosive-options.regeneration-height");
@@ -657,6 +674,7 @@ public class Listeners implements Listener
                             {
                                 Location location = restoreLocations.get(i);
                                 Block block = location.getBlock();
+                                System.out.println(block.getType());
                                 if (block.getState() instanceof InventoryHolder && containers.containsKey(location))
                                 {
                                     InventoryHolder ih = (InventoryHolder) block.getState();

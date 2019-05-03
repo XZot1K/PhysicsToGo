@@ -24,7 +24,7 @@ public class PhysicsToGo extends JavaPlugin
 
     private static PhysicsToGo pluginInstance;
     public List<BlockState> savedStates;
-    public List<DoubleChest> savedDoubleChests;
+    private List<DoubleChest> savedDoubleChests;
     public ArrayList<UUID> savedExplosiveFallingBlocks, savedTreeFallingBlocks;
     private UpdateChecker updateChecker;
     private LandsHook landsHook;
