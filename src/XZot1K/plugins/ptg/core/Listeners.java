@@ -282,27 +282,45 @@ public class Listeners implements Listener
                 BlockState state = b.getState();
                 if (isInMaterialList("explosive-options.effected-material-blacklist", b))
                 {
-                    if (isInMaterialList("explosive-options.help-needed-material", b))
-                    {
-                        Block downBlock = b.getRelative(BlockFace.DOWN);
-                        downBlock.getState().update(true, false);
-                        e.blockList().remove(downBlock);
-                        blocks.remove(downBlock);
+                    e.blockList().remove(b);
+                    blocks.remove(b);
+                    continue;
+                }
 
-                        if (downBlock.getType() == b.getType())
-                        {
-                            Block downBlock2 = downBlock.getRelative(BlockFace.DOWN);
-                            downBlock2.getState().update(true, false);
-                            state.update(true, false);
-                            e.blockList().remove(downBlock2);
-                            blocks.remove(downBlock2);
-                        }
-                    }
-
+                if (isInMaterialList("explosive-options.help-needed-material", b.getRelative(BlockFace.UP)))
+                {
                     state.update(true, false);
+                    b.getRelative(BlockFace.UP).getState().update(true, false);
+                    e.blockList().remove(b.getRelative(BlockFace.UP));
                     e.blockList().remove(b);
                     continue;
                 }
+
+                if (isInMaterialList("explosive-options.help-needed-material", b))
+                {
+                    Block downBlock = b.getRelative(BlockFace.DOWN);
+                    downBlock.getState().update(true, false);
+                    e.blockList().remove(downBlock);
+                    blocks.remove(downBlock);
+
+                    if (downBlock.getType() == b.getType())
+                    {
+                        Block downBlock2 = downBlock.getRelative(BlockFace.DOWN);
+                        downBlock2.getState().update(true, false);
+                        state.update(true, false);
+                        e.blockList().remove(downBlock2);
+                        blocks.remove(downBlock2);
+                    }
+                }
+
+                if (isInMaterialList("explosive-options.help-needed-material", b.getRelative(BlockFace.UP)))
+                {
+                    Block downBlock = b.getRelative(BlockFace.UP).getRelative(BlockFace.DOWN);
+                    downBlock.getState().update(true, false);
+                    e.blockList().remove(downBlock);
+                    blocks.remove(downBlock);
+                }
+
 
                 if (!passedHooks(b.getLocation()))
                     continue;
@@ -384,7 +402,9 @@ public class Listeners implements Listener
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
 
-
+                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
+                        relative1.getState().update(true, false);
+                        relative2.getState().update(true, false);
                         state.update(true, false);
 
                         if (state instanceof InventoryHolder && !restorationMemory)
@@ -400,9 +420,6 @@ public class Listeners implements Listener
                         if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                                 || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                             b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
-                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
-                        relative1.getState().update(true, false);
-                        relative2.getState().update(true, false);
 
                         if (restorationMemory)
                             if (state instanceof InventoryHolder)
@@ -450,7 +467,6 @@ public class Listeners implements Listener
                             {
                                 Location location = restoreLocations.get(i);
                                 Block block = location.getBlock();
-                                System.out.println(block.getType());
                                 if (block.getState() instanceof InventoryHolder && containers.containsKey(location))
                                 {
                                     InventoryHolder ih = (InventoryHolder) block.getState();
@@ -462,7 +478,7 @@ public class Listeners implements Listener
                             cancel();
                         }
                     }
-                }.runTaskTimer(plugin, 20, 20);
+                }.runTaskTimer(plugin, 60, 60);
 
             new BukkitRunnable()
             {
@@ -506,27 +522,45 @@ public class Listeners implements Listener
                 BlockState state = b.getState();
                 if (isInMaterialList("explosive-options.effected-material-blacklist", b))
                 {
-                    if (isInMaterialList("explosive-options.help-needed-material", b))
-                    {
-                        Block downBlock = b.getRelative(BlockFace.DOWN);
-                        downBlock.getState().update(true, false);
-                        e.blockList().remove(downBlock);
-                        blocks.remove(downBlock);
+                    e.blockList().remove(b);
+                    blocks.remove(b);
+                    continue;
+                }
 
-                        if (downBlock.getType() == b.getType())
-                        {
-                            Block downBlock2 = downBlock.getRelative(BlockFace.DOWN);
-                            downBlock2.getState().update(true, false);
-                            state.update(true, false);
-                            e.blockList().remove(downBlock2);
-                            blocks.remove(downBlock2);
-                        }
-                    }
-
+                if (isInMaterialList("explosive-options.help-needed-material", b.getRelative(BlockFace.UP)))
+                {
                     state.update(true, false);
+                    b.getRelative(BlockFace.UP).getState().update(true, false);
+                    e.blockList().remove(b.getRelative(BlockFace.UP));
                     e.blockList().remove(b);
                     continue;
                 }
+
+                if (isInMaterialList("explosive-options.help-needed-material", b))
+                {
+                    Block downBlock = b.getRelative(BlockFace.DOWN);
+                    downBlock.getState().update(true, false);
+                    e.blockList().remove(downBlock);
+                    blocks.remove(downBlock);
+
+                    if (downBlock.getType() == b.getType())
+                    {
+                        Block downBlock2 = downBlock.getRelative(BlockFace.DOWN);
+                        downBlock2.getState().update(true, false);
+                        state.update(true, false);
+                        e.blockList().remove(downBlock2);
+                        blocks.remove(downBlock2);
+                    }
+                }
+
+                if (isInMaterialList("explosive-options.help-needed-material", b.getRelative(BlockFace.UP)))
+                {
+                    Block downBlock = b.getRelative(BlockFace.UP).getRelative(BlockFace.DOWN);
+                    downBlock.getState().update(true, false);
+                    e.blockList().remove(downBlock);
+                    blocks.remove(downBlock);
+                }
+
 
                 if (!passedHooks(b.getLocation()))
                     continue;
@@ -608,7 +642,9 @@ public class Listeners implements Listener
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
 
-
+                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
+                        relative1.getState().update(true, false);
+                        relative2.getState().update(true, false);
                         state.update(true, false);
 
                         if (state instanceof InventoryHolder && !restorationMemory)
@@ -624,9 +660,6 @@ public class Listeners implements Listener
                         if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                                 || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                             b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
-                        Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
-                        relative1.getState().update(true, false);
-                        relative2.getState().update(true, false);
 
                         if (restorationMemory)
                             if (state instanceof InventoryHolder)
@@ -674,7 +707,6 @@ public class Listeners implements Listener
                             {
                                 Location location = restoreLocations.get(i);
                                 Block block = location.getBlock();
-                                System.out.println(block.getType());
                                 if (block.getState() instanceof InventoryHolder && containers.containsKey(location))
                                 {
                                     InventoryHolder ih = (InventoryHolder) block.getState();
@@ -686,7 +718,7 @@ public class Listeners implements Listener
                             cancel();
                         }
                     }
-                }.runTaskTimer(plugin, 20, 20);
+                }.runTaskTimer(plugin, 60, 60);
 
             new BukkitRunnable()
             {

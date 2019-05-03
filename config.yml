@@ -66,16 +66,38 @@ explosive-options:
   effected-material-blacklist:
     - "MOB_SPAWNER:-1"
     - "BEDROCK:-1"
-  # If a material is placed in this list the block directly under the material will be saved as well to prevent damage from default physics.
-  # (Note: Set the durability to -1 to ignore durability)
-  help-needed-material:
     - "WOODEN_DOOR:-1"
+    - "OAK_DOOR:-1"
     - "ACACIA_DOOR:-1"
     - "BIRCH_DOOR:-1"
     - "DARK_OAK_DOOR:-1"
     - "IRON_DOOR:-1"
     - "JUNGLE_DOOR:-1"
     - "SPRUCE_DOOR:-1"
+  # If a material is placed in this list the block directly under the material will be saved as well to prevent damage from default physics.
+  # (Note: Set the durability to -1 to ignore durability)
+  help-needed-material:
+    - "WOODEN_DOOR:-1"
+    - "OAK_DOOR:-1"
+    - "ACACIA_DOOR:-1"
+    - "BIRCH_DOOR:-1"
+    - "DARK_OAK_DOOR:-1"
+    - "IRON_DOOR:-1"
+    - "JUNGLE_DOOR:-1"
+    - "SPRUCE_DOOR:-1"
+    - "CROPS:-1"
+    - "SUGAR_CANE_BLOCK:-1"
+    - "SUGAR_CANE:-1"
+    - "CACTUS:-1"
+    - "CARROTS:-1"
+    - "POTATOES:-1"
+    - "WHEAT:-1"
+    - "BEETROOTS:-1"
+    - "GRASS:-1"
+    - "LONG_GRASS:-1"
+    - "SEAGRASS:-1"
+    - "TALL_SEAGRASS:-1"
+    - "SWEET_BERRY_BUSH:-1"
   # When blocks are damaged from explosions, should the effected blocks drop their relative items?
   block-drops: false
   # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
@@ -84,7 +106,7 @@ explosive-options:
   # (Note: The items will be restored inside the container if the above option is enabled.)
   container-drops: false
   # This is the fuse set for TNT handled inside of the explosive radius.
-  tnt-fuse: 2
+  tnt-fuse: 0
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
     - "world_the_end"
