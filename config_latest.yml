@@ -1,0 +1,237 @@
+# These are all the configurable messages that can be configured (Set the message "" to disable).
+messages:
+  usage: "&cUsage: /ptg <reload>"
+  reloaded: "&aAll configurations have been reloaded for PhysicsToGo."
+  no-permission: "&cYou don't have permission to use this."
+
+hooks-options:
+  # Here is where you can customize all options about the WorldGuard hook.
+  world-guard:
+    # This toggles the WorldGuard hook.
+    use-hook: false
+    # I this option is enabled, the region list will act as a blacklist, otherwise it will act as a whitelist.
+    blacklist: false
+    # Regions within this list will allow or prevent PTG to perform its magic inside each of them. Depending on the
+    # option above.
+    region-list:
+      - "allowed_zone"
+  feudal:
+    # If this is enabled, physics to go features will not work within claimed land.
+    use-hook: false
+  factions:
+    # If this is enabled, physics to go features will not work within claimed land.
+    use-factions: false
+    # If this is enabled, the hook will use Factions UUID over Massive Core.
+    factions-uuid: false
+  grief-preventation:
+    # If this is enabled, physics to go features will not work within claimed land.
+    use-grief-preventation: false
+  askyblock:
+    # If this is enabled, physics to go features will not work on islands.
+    use-askyblock: false
+  kingdoms:
+    # If this is enabled, physics to go features will not work within kingdom claimed land.
+    use-kingdoms: false
+  residence:
+    # If this is enabled, physics to go features will not work within residence land.
+    use-residence: false
+  towny:
+    # If this is enabled, physics to go features will not work within town blocks.
+    use-towny: false
+  lands:
+    # If this is enabled,  physics to go features will not work within land claims.
+    use-lands: false
+
+explosive-options:
+  # If this is enabled blocks will not be effected by explosions.
+  block-damage: true
+  # When blocks are damaged from explosions, should all effected blocks be tossed in different directions?
+  block-physics: true
+  # When blocks are damaged from explosions, should they be effected by PTG's regeneration effects?
+  block-regeneration: true
+  # If this is enabled falling blocks will form upon contact.
+  block-physics-form: false
+  # If this is enabled falling blocks that are formed will be removed after the defined delay.
+  block-physics-removal: true
+  # This is the delay in which formed blocks are removed (Note: 20 ticks equals 1 second.)
+  block-physics-removal-delay: 60
+  # Here is where you can customize options that effect the block regeneration.
+  block-regeneration-options:
+    # This option is how fast each block is regenerated in ticks (Note: 20 ticks equals 1 second.)
+    speed: 5
+    # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # Materials inside the list below will be avoided by any regeneration or physic effects involved with explosions.
+  # (Note: Set the durability to -1 to ignore durability)
+  effected-material-blacklist:
+    - "MOB_SPAWNER:-1"
+    - "BEDROCK:-1"
+    - "WOODEN_DOOR:-1"
+    - "OAK_DOOR:-1"
+    - "ACACIA_DOOR:-1"
+    - "BIRCH_DOOR:-1"
+    - "DARK_OAK_DOOR:-1"
+    - "IRON_DOOR:-1"
+    - "JUNGLE_DOOR:-1"
+    - "SPRUCE_DOOR:-1"
+  # If a material is placed in this list the block directly under the material will be saved as well to prevent damage from default physics.
+  # (Note: Set the durability to -1 to ignore durability)
+  help-needed-material:
+    - "WOODEN_DOOR:-1"
+    - "OAK_DOOR:-1"
+    - "ACACIA_DOOR:-1"
+    - "BIRCH_DOOR:-1"
+    - "DARK_OAK_DOOR:-1"
+    - "IRON_DOOR:-1"
+    - "JUNGLE_DOOR:-1"
+    - "SPRUCE_DOOR:-1"
+    - "CROPS:-1"
+    - "SUGAR_CANE_BLOCK:-1"
+    - "SUGAR_CANE:-1"
+    - "CACTUS:-1"
+    - "CARROTS:-1"
+    - "POTATOES:-1"
+    - "WHEAT:-1"
+    - "BEETROOTS:-1"
+    - "GRASS:-1"
+    - "LONG_GRASS:-1"
+    - "SEAGRASS:-1"
+    - "TALL_SEAGRASS:-1"
+    - "SWEET_BERRY_BUSH:-1"
+  # When blocks are damaged from explosions, should the effected blocks drop their relative items?
+  block-drops: false
+  # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
+  block-restoration-memory: true
+  # Should destroyed containers drop their items?
+  # (Note: The items will be restored inside the container if the above option is enabled.)
+  container-drops: false
+  # This is the fuse set for TNT handled inside of the explosive radius.
+  tnt-fuse: 0
+  # The worlds inside the list below will not be effected by any explosive modification made by PTG.
+  blacklisted-worlds:
+    - "world_the_end"
+  # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
+  entity-explosion-blacklist: []
+  # If this is enabled, regeneration effect will only occur above the set regeneration height.
+  regeneration-above-height: false
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  regeneration-height: -1
+
+block-break-options:
+  # If this is enabled PTG will listen when a player breaks a block and perform effects.
+  block-break-event: false
+  # When blocks are damaged by players, should the blocks be regenerated?
+  block-regeneration: true
+  # Here is where you can customize options that effect the block regeneration.
+  block-regeneration-options:
+    # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # Materials inside the list below will be avoided by any regeneration or physics effects involved with block breaking.
+  effected-material-blacklist:
+    - "OBSIDIAN:0"
+    - "BEDROCK:0"
+  # When blocks are damaged from players, should the effected blocks drop their relative items?
+  block-drops: false
+  # If this option is enabled, previously destroyed container and sign contents will be restored to regenerated blocks.
+  block-restoration-memory: true
+  # Should destroyed containers drop their items?
+  # (Note: The items will be restored inside the container if the above option is enabled.)
+  container-drops: false
+  # The worlds inside the list below will not be effected by any player block damage modified by PTG.
+  blacklisted-worlds:
+    - "world_the_end"
+  # If this is enabled, regeneration effect will only occur above the set regeneration height.
+  regeneration-above-height: false
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  regeneration-height: -1
+
+tree-physic-options:
+  # If this is enabled, tree physics will be enabled.
+  tree-physics: true
+  # For performance, tree physics goes from current location to max height and around the broken block with radius below.
+  # This being said, note that blocks attached to other trees within this radius will be effected (Recommended value is 5).
+  tree-physics-radius: 5
+  # If this is enabled, falling tree blocks will form on the ground.
+  physics-form: false
+  # If this is enabled, falling tree blocks will drop their correct material drops upon impact (Natural drops). (This requires "physics-form" to be disabled).
+  # THIS IS NOT THE SAME AS "physics-drops".
+  tree-drops: true
+  # If this is enabled, falling tree block entities will drop their items if harmed ("physics-form" must be enabled).
+  physics-drops: false
+  # If this enabled, formed falling blocks will be removed after the duration defined below.
+  physics-removal: false
+  # This is the formed falling block removal delay in ticks (20 ticks = 1 second).
+  physics-removal-delay: 20
+  # Here is where tree regeneration can be configured.
+  tree-regeneration:
+    # If this is enabled, tree physics will be regenerated.
+    regeneration: true
+    # This option is how fast each block is regenerated in ticks (Note: 20 ticks equals 1 second.)
+    speed: 20
+    # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # When an effected break material is destroyed the materials in this list will be effected by physics and dropped to
+  # the ground if attached to the broken block (Format: <Material>:<Durability>). Use -1 for all durabilities.
+  effected-physic-materials:
+    - "ACACIA_LEAVES:-1"
+    - "BIRCH_LEAVES:-1"
+    - "DARK_OAK_LEAVES:-1"
+    - "JUNGLE_LEAVES:-1"
+    - "OAK_LEAVES:-1"
+    - "SPRUCE_LEAVES:-1"
+    - "LEAVES:-1"
+    - "LEAVES_2:-1"
+    - "ACACIA_LOG:-1"
+    - "BIRCH_LOG:-1"
+    - "DARK_OAK_LOG:-1"
+    - "JUNGLE_LOG:-1"
+    - "OAK_LOG:-1"
+    - "SPRUCE_LOG:-1"
+    - "STRIPPED_ACACIA_LOG:-1"
+    - "STRIPPED_BIRCH_LOG:-1"
+    - "STRIPPED_DARK_OAK_LOG:-1"
+    - "STRIPPED_JUNGLE_LOG:-1"
+    - "STRIPPED_OAK_LOG:-1"
+    - "STRIPPED_SPRUCE_LOG:-1"
+    - "LOG:-1"
+    - "LOG_2:-1"
+  # These are the materials that will begin tree physics when broken. (Format: <Material>:<Durability>). Use -1 for all durabilities.
+  effected-break-materials:
+    - "ACACIA_LOG:-1"
+    - "BIRCH_LOG:-1"
+    - "DARK_OAK_LOG:-1"
+    - "JUNGLE_LOG:-1"
+    - "OAK_LOG:-1"
+    - "SPRUCE_LOG:-1"
+    - "STRIPPED_ACACIA_LOG:-1"
+    - "STRIPPED_BIRCH_LOG:-1"
+    - "STRIPPED_DARK_OAK_LOG:-1"
+    - "STRIPPED_JUNGLE_LOG:-1"
+    - "STRIPPED_OAK_LOG:-1"
+    - "STRIPPED_SPRUCE_LOG:-1"
+    - "LOG:-1"
+    - "LOG_2:-1"
+
+block-place-options:
+  # If this is enabled PTG will listen when a player places a block and perform effects.
+  block-place-event: false
+  # If this is enabled block placing will be cancelled. (Note: This will avoid the 'block-reversion' feature.)
+  block-place-cancel: false
+  # When blocks are damaged by players, should the blocks be regenerated?
+  block-reversion: true
+  # Here is where you can customize options that effect the block regeneration.
+  block-reversion-options:
+    # This option is how long before the regeneration process takes place in ticks. (Note: 20 ticks equals 1 second.)
+    delay: 20
+  # Materials inside the list below will be avoided by any reversion or physics effects involved with block placing.
+  effected-material-blacklist:
+    - "OBSIDIAN:0"
+    - "BEDROCK:0"
+  # The worlds inside the list below will not be effected by any player placement modifications by PTG.
+  blacklisted-worlds:
+    - "world_the_end"
+  # If this is enabled, reversion effect will only occur above the set reversion height.
+  reversion-above-height: false
+  # This tells PTG to regenerate block only if they are below the defined Y-axis below.
+  # (Note: For block placing blocks will not be 'reverted' unless below/equal to the defined height below.)
+  reversion-height: -1

@@ -41,7 +41,6 @@ import org.bukkit.util.Vector;
 import org.kingdoms.constants.land.Land;
 import org.kingdoms.constants.land.SimpleChunkLocation;
 import us.forseth11.feudal.core.Feudal;
-import us.forseth11.feudal.kingdoms.Kingdom;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -905,10 +904,9 @@ public class Listeners implements Listener
                 safeLocation = false;
         }
 
-        if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook"))
+        if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook") && Feudal.getAPI().getKingdom(location) != null)
         {
-            Kingdom kingdom = Feudal.getAPI().getKingdom(location);
-            if (kingdom != null) safeLocation = false;
+            safeLocation = false;
         }
 
         if (plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook"))

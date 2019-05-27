@@ -12,11 +12,14 @@ public class WG_6
     public static boolean passedWorldGuardHook(Location location)
     {
         boolean isBlacklist = PhysicsToGo.getPluginInstance().getConfig().getBoolean("hooks-options.world-guard.blacklist");
-        List<String> regionWhitelist = PhysicsToGo.getPluginInstance().getConfig().getStringList("hooks-options.world-guard.region-whitelist");
+        List<String> regionWhitelist = PhysicsToGo.getPluginInstance().getConfig().getStringList("hooks-options.world-guard.region-list");
         for (ProtectedRegion protectedRegion : PhysicsToGo.getPluginInstance().getWorldGuard().getRegionManager(location.getWorld()).getApplicableRegions(location).getRegions())
-            if (isBlacklist == isInList(regionWhitelist, protectedRegion.getId())) return false;
+        {
+            boolean isInList = isInList(regionWhitelist, protectedRegion.getId());
+            if (isInList) return !isBlacklist;
+        }
 
-        return true;
+        return isBlacklist;
     }
 
     private static boolean isInList(List<String> stringList, String string)
