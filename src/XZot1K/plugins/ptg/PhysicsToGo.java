@@ -23,8 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
-public class PhysicsToGo extends JavaPlugin
-{
+public class PhysicsToGo extends JavaPlugin {
 
     private static PhysicsToGo pluginInstance;
     public List<BlockState> savedStates;
@@ -35,8 +34,7 @@ public class PhysicsToGo extends JavaPlugin
     private String serverVersion;
 
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
         savedStates = new ArrayList<>();
         savedExplosiveFallingBlocks = new ArrayList<>();
@@ -59,35 +57,29 @@ public class PhysicsToGo extends JavaPlugin
     }
 
     @Override
-    public void onDisable()
-    {
+    public void onDisable() {
         log(Level.INFO, "Please wait while a couple tasks are processed...");
         int restoreCounter = 0, removedFBCounter = 0;
 
-        for (int i = -1; ++i < getServer().getWorlds().size(); )
-        {
+        for (int i = -1; ++i < getServer().getWorlds().size(); ) {
             World world = getServer().getWorlds().get(i);
-            for (int k = -1; ++k < world.getEntities().size(); )
-            {
+            for (int k = -1; ++k < world.getEntities().size(); ) {
                 Entity entity = world.getEntities().get(k);
-                if (entity.hasMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}") || entity.hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}"))
-                {
+                if (entity.hasMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}") || entity.hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}")) {
                     entity.remove();
                     removedFBCounter += 1;
                 }
             }
         }
 
-        for (int i = -1; ++i < savedStates.size(); )
-        {
+        for (int i = -1; ++i < savedStates.size(); ) {
             BlockState state = savedStates.get(i);
             state.update(true, false);
             state.update();
             restoreCounter += 1;
         }
 
-        for (int i = -1; ++i < getSavedDoubleChests().size(); )
-        {
+        for (int i = -1; ++i < getSavedDoubleChests().size(); ) {
             DoubleChest doubleChest = getSavedDoubleChests().get(i);
             doubleChest.restore();
         }
@@ -98,8 +90,7 @@ public class PhysicsToGo extends JavaPlugin
         log(Level.INFO, restoreCounter + " block states were successfully restored!");
     }
 
-    private void updateConfig()
-    {
+    private void updateConfig() {
         int updateCount = 0;
 
         saveResource("config_latest.yml", true);
@@ -108,30 +99,25 @@ public class PhysicsToGo extends JavaPlugin
         FileConfiguration updatedYaml = YamlConfiguration.loadConfiguration(latestConfigFile);
         List<String> currentKeys = new ArrayList<>(Objects.requireNonNull(getConfig().getConfigurationSection("")).getKeys(true)),
                 updatedKeys = new ArrayList<>(Objects.requireNonNull(updatedYaml.getConfigurationSection("")).getKeys(true));
-        for (int i = -1; ++i < updatedKeys.size(); )
-        {
+        for (int i = -1; ++i < updatedKeys.size(); ) {
             String updatedKey = updatedKeys.get(i);
-            if (!currentKeys.contains(updatedKey) && !updatedKey.contains(".items.") && !updatedKey.contains("custom-menus-section."))
-            {
+            if (!currentKeys.contains(updatedKey) && !updatedKey.contains(".items.") && !updatedKey.contains("custom-menus-section.")) {
                 getConfig().set(updatedKey, updatedYaml.get(updatedKey));
                 updateCount += 1;
                 log(Level.INFO, "Updated the '" + updatedKey + "' key within the configuration since it wasn't found.");
             }
         }
 
-        for (int i = -1; ++i < currentKeys.size(); )
-        {
+        for (int i = -1; ++i < currentKeys.size(); ) {
             String currentKey = currentKeys.get(i);
-            if (!updatedKeys.contains(currentKey))
-            {
+            if (!updatedKeys.contains(currentKey)) {
                 getConfig().set(currentKey, null);
                 updateCount += 1;
                 log(Level.INFO, "Removed the '" + currentKey + "' key within the configuration since it was invalid.");
             }
         }
 
-        if (updateCount > 0)
-        {
+        if (updateCount > 0) {
             saveConfig();
             log(Level.INFO, "The configuration has been updated using the " + latestConfigFile.getName() + " file.");
             log(Level.WARNING, "Please go check out the configuration and customize these newly generated options to your liking. " +
@@ -141,60 +127,49 @@ public class PhysicsToGo extends JavaPlugin
         latestConfigFile.delete();
     }
 
-    public void log(Level level, String message)
-    {
+    public void log(Level level, String message) {
         getServer().getLogger().log(level, "[" + getDescription().getName() + "] " + message);
     }
 
-    public WorldGuardPlugin getWorldGuard()
-    {
+    public WorldGuardPlugin getWorldGuard() {
         Plugin p = getServer().getPluginManager().getPlugin("WorldGuard");
         if (!(p instanceof WorldGuardPlugin)) return null;
         return (WorldGuardPlugin) p;
     }
 
-    public static PhysicsToGo getPluginInstance()
-    {
+    public static PhysicsToGo getPluginInstance() {
         return pluginInstance;
     }
 
-    private String colorText(String text)
-    {
+    private String colorText(String text) {
         return ChatColor.translateAlternateColorCodes('&', text);
     }
 
-    public UpdateChecker getUpdateChecker()
-    {
+    public UpdateChecker getUpdateChecker() {
         return updateChecker;
     }
 
-    public String getServerVersion()
-    {
+    public String getServerVersion() {
         return serverVersion;
     }
 
-    private void setServerVersion(String serverVersion)
-    {
+    private void setServerVersion(String serverVersion) {
         this.serverVersion = serverVersion;
     }
 
-    public LandsHook getLandsHook()
-    {
+    public LandsHook getLandsHook() {
         return landsHook;
     }
 
-    public void setLandsHook(LandsHook landsHook)
-    {
+    public void setLandsHook(LandsHook landsHook) {
         this.landsHook = landsHook;
     }
 
-    private void setSavedDoubleChests(List<DoubleChest> savedDoubleChests)
-    {
+    private void setSavedDoubleChests(List<DoubleChest> savedDoubleChests) {
         this.savedDoubleChests = savedDoubleChests;
     }
 
-    public List<DoubleChest> getSavedDoubleChests()
-    {
+    public List<DoubleChest> getSavedDoubleChests() {
         return savedDoubleChests;
     }
 }
