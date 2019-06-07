@@ -69,10 +69,11 @@ public class Listeners implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
-        if (!e.getPlayer().hasPermission("ptg.bypass.place") && (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
+        if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
+                || !e.getPlayer().hasPermission("ptg.bypass.place")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isInMaterialList("block-place-options.effected-material-blacklist", e.getBlock())
-                || !passedHooks(e.getBlock().getLocation())))
+                || !passedHooks(e.getBlock().getLocation()))
             return;
         if (plugin.getConfig().getBoolean("block-place-options.block-place-cancel")) {
             e.setCancelled(true);
@@ -149,10 +150,11 @@ public class Listeners implements Listener {
             }
         }
 
-        if (!e.getPlayer().hasPermission("ptg.bypass.break") && (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
+        if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
+                || !e.getPlayer().hasPermission("ptg.bypass.break")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
-                || !passedHooks(e.getBlock().getLocation()))) return;
-        if (isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
+                || !passedHooks(e.getBlock().getLocation())
+                || isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
 
         int delay = plugin.getConfig().getInt("block-break-options.block-regeneration-options.delay");
         boolean dropItems = plugin.getConfig().getBoolean("block-break-options.block-drops"),
