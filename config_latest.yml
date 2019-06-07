@@ -9,6 +9,8 @@ hooks-options:
   world-guard:
     # This toggles the WorldGuard hook.
     use-hook: false
+    # If this is enabled, PTG will not work in ANY regions of worldguard.
+    block-in-all: false
     # I this option is enabled, the region list will act as a blacklist, otherwise it will act as a whitelist.
     blacklist: false
     # Regions within this list will allow or prevent PTG to perform its magic inside each of them. Depending on the
