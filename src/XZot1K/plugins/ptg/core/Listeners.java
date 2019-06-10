@@ -42,8 +42,6 @@ import org.kingdoms.constants.land.Land;
 import org.kingdoms.constants.land.SimpleChunkLocation;
 import us.forseth11.feudal.core.Feudal;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class Listeners implements Listener {
@@ -85,26 +83,32 @@ public class Listeners implements Listener {
                 reversionAboveHeight = plugin.getConfig().getBoolean("block-place-options.reversion-above-height");
 
         int heightLimit = plugin.getConfig().getInt("block-place-options.reversion-height");
-        if (blockReversion && (reversionAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit) : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))) {
-            Material previousMaterial = e.getBlockReplacedState().getType();
-            byte previousData = e.getBlockReplacedState().getRawData();
-            getPlacedLocationMemory().add(e.getBlock().getLocation());
+        if (blockReversion && (reversionAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit)
+                : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))) {
+            //  byte previousData = e.getBlockReplacedState().getRawData();
+
+            if (!blockLocationMemory.contains(e.getBlock().getLocation()))
+                blockLocationMemory.add(e.getBlock().getLocation());
+            else return;
+
+            plugin.savedStates.add(e.getBlockReplacedState());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
                 Material placedMaterial = e.getBlock().getType();
-                e.getBlock().setType(previousMaterial);
+                plugin.savedStates.remove(e.getBlockReplacedState());
+                blockLocationMemory.remove(e.getBlock().getLocation());
+                e.getBlockReplacedState().update(true, true);
                 if (!plugin.getServerVersion().startsWith("v1_13") && !plugin.getServerVersion().startsWith("v1_14")) {
-                    try {
+                    /*try {
                         Method closeMethod = e.getBlock().getClass().getMethod("setData", Short.class);
                         if (closeMethod != null)
                             closeMethod.invoke(e.getBlock().getClass(), (short) previousData);
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-                    }
-                }
+                    }*/
 
-                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
-                        || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
-                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType() == Material.AIR ? placedMaterial.getId() : e.getBlock().getType().getId());
+                    e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType() == Material.AIR
+                            ? placedMaterial.getId() : e.getBlock().getType().getId());
+                }
             }, delay);
         }
     }
@@ -115,7 +119,8 @@ public class Listeners implements Listener {
         if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")) {
             if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock())) {
                 boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
-                int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"), delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
+                int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),
+                        delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
                         speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
                 for (int i = -1; ++i < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
                     for (int x = -radius; ++x < radius; )
@@ -189,9 +194,11 @@ public class Listeners implements Listener {
 
         boolean regenerationAboveHeight = plugin.getConfig().getBoolean("block-break-options.regeneration-above-height");
         int heightLimit = plugin.getConfig().getInt("block-break-options.regeneration-height");
-        if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit) : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))) {
+        if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit)
+                : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))) {
             if (!blockLocationMemory.contains(e.getBlock().getLocation()))
                 blockLocationMemory.add(e.getBlock().getLocation());
+            else return;
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
                 blockState.update(true, false);
@@ -647,7 +654,8 @@ public class Listeners implements Listener {
     public void EntityChangeBlockEvent(EntityChangeBlockEvent e) {
         if (e.getEntity() instanceof FallingBlock) {
             if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")
-                    && plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}")) {
+                    && plugin.savedTreeFallingBlocks.contains(e.getEntity().getUniqueId())
+                    || e.getEntity().hasMetadata("P_T_G={'TREE_FALLING_BLOCK'}")) {
                 if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                         || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                     e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
@@ -686,7 +694,8 @@ public class Listeners implements Listener {
                     }.runTaskLater(plugin, plugin.getConfig().getInt("tree-physic-options.physics-removal-delay"));
             }
 
-            if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId()) || e.getEntity().hasMetadata("P_T_G={'EXPLOSION_FALLING_BLOCK'}")) {
+            if (plugin.savedExplosiveFallingBlocks.contains(e.getEntity().getUniqueId())
+                    || e.getEntity().hasMetadata("P_T_G={'EXPLOSION_FALLING_BLOCK'}")) {
                 if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                         || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                     e.getEntity().getWorld().playEffect(e.getEntity().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());

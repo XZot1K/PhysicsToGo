@@ -112,7 +112,7 @@ explosive-options:
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
     - "world_the_end"
-  # Entity types inside the list bellow will be effected by any explosive modification made by PTG.
+  # Entity types inside the list bellow will be not effected by any explosive modification made by PTG.
   entity-explosion-blacklist: []
   # If this is enabled, regeneration effect will only occur above the set regeneration height.
   regeneration-above-height: false
