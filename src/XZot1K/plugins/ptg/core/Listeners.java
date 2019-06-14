@@ -68,7 +68,7 @@ public class Listeners implements Listener {
     @EventHandler
     public void onPlace(BlockPlaceEvent e) {
         if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
-                || !e.getPlayer().hasPermission("ptg.bypass.place")
+                || e.getPlayer().hasPermission("ptg.bypass.place")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || isInMaterialList("block-place-options.effected-material-blacklist", e.getBlock())
                 || !passedHooks(e.getBlock().getLocation()))
@@ -94,9 +94,12 @@ public class Listeners implements Listener {
             plugin.savedStates.add(e.getBlockReplacedState());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
+                if (!passedHooks(e.getBlock().getLocation())) return;
                 Material placedMaterial = e.getBlock().getType();
                 plugin.savedStates.remove(e.getBlockReplacedState());
                 blockLocationMemory.remove(e.getBlock().getLocation());
+                if (!passedHooks(e.getBlockReplacedState().getLocation())) return;
+
                 e.getBlockReplacedState().update(true, true);
                 if (!plugin.getServerVersion().startsWith("v1_13") && !plugin.getServerVersion().startsWith("v1_14")) {
                     /*try {
@@ -155,8 +158,7 @@ public class Listeners implements Listener {
             }
         }
 
-        if (!plugin.getConfig().getBoolean("block-break-options.block-break-event")
-                || !e.getPlayer().hasPermission("ptg.bypass.break")
+        if (!plugin.getConfig().getBoolean("block-break-options.block-break-event") || e.getPlayer().hasPermission("ptg.bypass.break")
                 || isInList("block-break-options.blacklisted-worlds", e.getBlock().getWorld().getName())
                 || !passedHooks(e.getBlock().getLocation())
                 || isInMaterialList("block-break-options.effected-material-blacklist", e.getBlock())) return;
@@ -571,7 +573,6 @@ public class Listeners implements Listener {
                         blockLocationMemory.add(b.getLocation());
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
-
                         Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
                         relative1.getState().update(true, false);
                         relative2.getState().update(true, false);
