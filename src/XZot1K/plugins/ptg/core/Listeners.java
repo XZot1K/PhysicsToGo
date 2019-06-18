@@ -94,7 +94,7 @@ public class Listeners implements Listener {
             plugin.savedStates.add(e.getBlockReplacedState());
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
-                if (!passedHooks(e.getBlock().getLocation())) return;
+                if (!passedHooks(e.getBlockReplacedState().getLocation())) return;
                 Material placedMaterial = e.getBlock().getType();
                 plugin.savedStates.remove(e.getBlockReplacedState());
                 blockLocationMemory.remove(e.getBlock().getLocation());
@@ -142,6 +142,7 @@ public class Listeners implements Listener {
                                     new BukkitRunnable() {
                                         @Override
                                         public void run() {
+                                            if (!passedHooks(blockState.getLocation())) return;
                                             blockState.update(true, false);
                                             if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                                                     || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
@@ -203,14 +204,15 @@ public class Listeners implements Listener {
             else return;
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
             {
-                blockState.update(true, false);
+                if (!passedHooks(blockState.getLocation())) return;
+                blockState.update(true, true);
                 if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
                         || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                     e.getBlock().getWorld().playEffect(e.getBlock().getLocation(), Effect.STEP_SOUND, e.getBlock().getType().getId());
                 Block relative1 = e.getBlock().getRelative(BlockFace.DOWN),
                         relative2 = e.getBlock().getRelative(BlockFace.UP);
-                relative1.getState().update(true, false);
-                relative2.getState().update(true, false);
+                relative1.getState().update(true, true);
+                relative2.getState().update(true, true);
 
                 if (restorationMemory)
                     if (blockState instanceof InventoryHolder) {
@@ -314,8 +316,7 @@ public class Listeners implements Listener {
 
                     if (restorationMemory) {
                         if (state instanceof InventoryHolder) {
-                            if (!restoreLocations.contains(b.getLocation())) ;
-                            {
+                            if (!restoreLocations.contains(b.getLocation())) {
                                 InventoryHolder ih = (InventoryHolder) state;
                                 if (ih.getInventory().getHolder() instanceof DoubleChest && (plugin.getServerVersion().startsWith("v1_13")
                                         || plugin.getServerVersion().startsWith("v1_14"))) {
@@ -329,7 +330,6 @@ public class Listeners implements Listener {
                                 } else {
                                     restoreLocations.add(b.getLocation());
                                     containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                                    restoreLocations.add(b.getLocation());
                                 }
                             }
                         } else if (b.getState() instanceof Sign) {
@@ -521,8 +521,7 @@ public class Listeners implements Listener {
 
                     if (restorationMemory) {
                         if (state instanceof InventoryHolder) {
-                            if (!restoreLocations.contains(b.getLocation())) ;
-                            {
+                            if (!restoreLocations.contains(b.getLocation())) {
                                 InventoryHolder ih = (InventoryHolder) state;
                                 if (ih.getInventory().getHolder() instanceof DoubleChest && (plugin.getServerVersion().startsWith("v1_13")
                                         || plugin.getServerVersion().startsWith("v1_14"))) {
@@ -536,7 +535,6 @@ public class Listeners implements Listener {
                                 } else {
                                     restoreLocations.add(b.getLocation());
                                     containers.put(b.getLocation(), ih.getInventory().getContents().clone());
-                                    restoreLocations.add(b.getLocation());
                                 }
                             }
                         } else if (b.getState() instanceof Sign) {
@@ -574,8 +572,11 @@ public class Listeners implements Listener {
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () ->
                     {
                         Block relative1 = b.getRelative(BlockFace.DOWN), relative2 = b.getRelative(BlockFace.UP);
-                        relative1.getState().update(true, false);
-                        relative2.getState().update(true, false);
+                        try {
+                            relative1.getState().update(true, false);
+                            relative2.getState().update(true, false);
+                        } catch (Exception ignored) {
+                        }
                         state.update(true, false);
 
                         if (state instanceof InventoryHolder && !restorationMemory) {
@@ -868,7 +869,7 @@ public class Listeners implements Listener {
         return safeLocation;
     }
 
-    public double getRandomInRange(double min, double max) {
+    private double getRandomInRange(double min, double max) {
         return (min + (max - min) * random.nextDouble());
     }
 
@@ -894,8 +895,16 @@ public class Listeners implements Listener {
     }
 
     // sorting
-    public void sortFromLowestToHighest(List<Block> blockList) {
-        sortFromLowestToHighest(blockList, 0, (blockList.size() - 1));
+    private void sortFromLowestToHighest(List<Block> blockList) {
+        List<Block> reformattedBlockList = new ArrayList<>();
+        for (Block block : blockList)
+            if (block instanceof Container || block.getState() instanceof InventoryHolder)
+                reformattedBlockList.add(block);
+
+        for (Block block : blockList)
+            if (!reformattedBlockList.contains(block)) reformattedBlockList.add(block);
+
+        sortFromLowestToHighest(reformattedBlockList, 0, (reformattedBlockList.size() - 1));
     }
 
     private void sortFromLowestToHighest(List<Block> blockList, int low, int high) {
