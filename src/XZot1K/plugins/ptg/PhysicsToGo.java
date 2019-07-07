@@ -45,6 +45,12 @@ public class PhysicsToGo extends JavaPlugin {
         saveDefaultConfig();
         updateConfig();
 
+        log(Level.INFO,
+                "\n===============================================================================\n" +
+                        "        Need a server host? Try PebbleHost! Plans starting at $1/GB!\n" +
+                        "                  Use promo code \"zotdev\" for 5% off!\n" +
+                        "                            www.pebblehost.com\n" +
+                        "===============================================================================");
         log(Level.INFO, "Setting up required requisites...");
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         Objects.requireNonNull(getCommand("ptg")).setExecutor(new PhysicsToGoCommand(this));
