@@ -45,12 +45,6 @@ public class PhysicsToGo extends JavaPlugin {
         saveDefaultConfig();
         updateConfig();
 
-        log(Level.INFO,
-                "\n===============================================================================\n" +
-                        "        Need a server host? Try PebbleHost! Plans starting at $1/GB!\n" +
-                        "                  Use promo code \"zotdev\" for 5% off!\n" +
-                        "                            www.pebblehost.com\n" +
-                        "===============================================================================");
         log(Level.INFO, "Setting up required requisites...");
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         Objects.requireNonNull(getCommand("ptg")).setExecutor(new PhysicsToGoCommand(this));
@@ -78,17 +72,13 @@ public class PhysicsToGo extends JavaPlugin {
             }
         }
 
-        for (int i = -1; ++i < savedStates.size(); ) {
-            BlockState state = savedStates.get(i);
+        for (BlockState state : savedStates) {
             state.update(true, false);
             state.update();
             restoreCounter += 1;
         }
 
-        for (int i = -1; ++i < getSavedDoubleChests().size(); ) {
-            DoubleChest doubleChest = getSavedDoubleChests().get(i);
-            doubleChest.restore();
-        }
+        for (DoubleChest doubleChest : getSavedDoubleChests()) doubleChest.restore();
 
         savedStates.clear();
         getSavedDoubleChests().clear();
@@ -133,7 +123,7 @@ public class PhysicsToGo extends JavaPlugin {
         latestConfigFile.delete();
     }
 
-    public void log(Level level, String message) {
+    private void log(Level level, String message) {
         getServer().getLogger().log(level, "[" + getDescription().getName() + "] " + message);
     }
 
