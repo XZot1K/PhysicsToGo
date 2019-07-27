@@ -798,7 +798,7 @@ public class Listeners implements Listener {
             if (plugin.getLandsHook() == null) landsHook = new LandsHook(plugin);
             else landsHook = plugin.getLandsHook();
 
-            if (landsHook.getLandsAddon().getLandChunkHard(Objects.requireNonNull(location.getWorld()).getName(), location.getChunk().getX(), location.getChunk().getZ()) != null)
+            if (landsHook.getLandsAddon().getLandChunk(location) != null)
                 safeLocation = false;
         }
 
