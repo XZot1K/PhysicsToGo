@@ -45,7 +45,7 @@ hooks-options:
     use-lands: false
 
 explosive-options:
-  # If this is enabled blocks will not be effected by explosions.
+  # If this is disabled blocks will not be effected by explosions.
   block-damage: true
   # When blocks are damaged from explosions, should all effected blocks be tossed in different directions?
   block-physics: true
