@@ -119,7 +119,7 @@ public class Listeners implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
-        if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")) {
+        if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics") && !isInList("tree-physic-options.blacklisted-worlds", Objects.requireNonNull(e.getBlock().getWorld()).getName())) {
             if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock())) {
                 boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
                 int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),

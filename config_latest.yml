@@ -213,6 +213,9 @@ tree-physic-options:
     - "STRIPPED_SPRUCE_LOG:-1"
     - "LOG:-1"
     - "LOG_2:-1"
+    # The worlds inside the list below will be ignored by PTG when looking at tree physics.
+    blacklisted-worlds:
+      - "world_the_end"
 
 block-place-options:
   # If this is enabled PTG will listen when a player places a block and perform effects.
