@@ -123,9 +123,8 @@ public class Listeners implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")) {
-            if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock())) {
-                boolean blockRegeneration = plugin.getConfig()
-                        .getBoolean("tree-physic-options.tree-regeneration.regeneration");
+            if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock()) || passedHooks(e.getBlock().getLocation())) {
+                boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
                 int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),
                         delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
                         speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
@@ -133,7 +132,8 @@ public class Listeners implements Listener {
                     for (int x = -radius; ++x < radius; )
                         for (int z = -radius; ++z < radius; ) {
                             Block block = e.getBlock().getRelative(x, i, z);
-                            if (isInMaterialList("tree-physic-options.effected-physic-materials", block)) {
+                            if (isInMaterialList("tree-physic-options.effected-physic-materials", block)
+                                    && passedHooks(e.getBlock().getLocation())) {
                                 BlockState blockState = block.getState();
                                 if (blockRegeneration)
                                     plugin.savedStates.add(blockState);
