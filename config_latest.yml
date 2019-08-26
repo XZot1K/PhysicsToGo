@@ -4,6 +4,10 @@ messages:
   reloaded: "&aAll configurations have been reloaded for PhysicsToGo."
   no-permission: "&cYou don't have permission to use this."
 
+general-options:
+  # If this is enabled, updates will be sent to the console on start up.
+  update-checker: true
+
 hooks-options:
   # Here is where you can customize all options about the WorldGuard hook.
   world-guard:
@@ -45,7 +49,7 @@ hooks-options:
     use-lands: false
 
 explosive-options:
-  # If this is enabled blocks will not be effected by explosions.
+  # If this is disabled blocks will not be effected by explosions.
   block-damage: true
   # When blocks are damaged from explosions, should all effected blocks be tossed in different directions?
   block-physics: true
@@ -112,7 +116,7 @@ explosive-options:
   # The worlds inside the list below will not be effected by any explosive modification made by PTG.
   blacklisted-worlds:
     - "world_the_end"
-  # Entity types inside the list bellow will not be effected by any explosive modification made by PTG.
+  # Entity types inside the list bellow will be not effected by any explosive modification made by PTG.
   entity-explosion-blacklist: []
   # If this is enabled, regeneration effect will only occur above the set regeneration height.
   regeneration-above-height: false

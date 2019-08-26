@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PhysicsToGo:jar">
+    <output-path>F:/Minecraft/Minecraft Test Server/plugins</output-path>
+    <root id="archive" name="PhysicsToGo.jar">
+      <element id="module-output" name="PhysicsToGo" />
+      <element id="file-copy" path="$PROJECT_DIR$/config.yml" />
+      <element id="file-copy" path="$PROJECT_DIR$/config_latest.yml" />
+      <element id="file-copy" path="$PROJECT_DIR$/plugin.yml" />
+    </root>
+  </artifact>
+</component>

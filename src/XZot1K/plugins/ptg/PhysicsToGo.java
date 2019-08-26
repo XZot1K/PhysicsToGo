@@ -49,9 +49,10 @@ public class PhysicsToGo extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
         Objects.requireNonNull(getCommand("ptg")).setExecutor(new PhysicsToGoCommand(this));
 
-        if (updateChecker.checkForUpdates())
-            log(Level.INFO, "There seems to be a new version on the PhysicsToGo page.");
-        else log(Level.INFO, "Everything is up to date!");
+        if (getConfig().getBoolean("general-options.update-checker"))
+            if (updateChecker.checkForUpdates())
+                log(Level.INFO, "There seems to be a new version on the PhysicsToGo page.");
+            else log(Level.INFO, "Everything is up to date!");
         log(Level.INFO, "Version " + getDescription().getVersion() + " has been successfully enabled!");
         new Metrics(pluginInstance);
     }

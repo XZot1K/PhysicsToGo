@@ -4,6 +4,10 @@ messages:
   reloaded: "&aAll configurations have been reloaded for PhysicsToGo."
   no-permission: "&cYou don't have permission to use this."
 
+general-options:
+  # If this is enabled, updates will be sent to the console on start up.
+  update-checker: true
+
 hooks-options:
   # Here is where you can customize all options about the WorldGuard hook.
   world-guard:
