@@ -644,13 +644,14 @@ public class Listeners implements Listener {
             }
 
             if (blockPhysics) {
-                FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5),
-                        b.getType(), b.getData());
-                fallingBlock.setDropItem(false);
-                fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6),
-                        getRandomInRange(-0.5, 0.5)));
-                fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
+                int chance = plugin.getConfig().getInt("explosive-options.block-physics-chance");
+                if (getPivot(0, 100) < chance) {
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5), b.getType(), b.getData());
+                    fallingBlock.setDropItem(false);
+                    fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6), getRandomInRange(-0.5, 0.5)));
+                    fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
+                }
             }
 
             if (!plugin.getConfig().getBoolean("explosive-options.block-drops")) {
@@ -852,13 +853,14 @@ public class Listeners implements Listener {
             }
 
             if (blockPhysics) {
-                FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5),
-                        b.getType(), b.getData());
-                fallingBlock.setDropItem(false);
-                fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6),
-                        getRandomInRange(-0.5, 0.5)));
-                fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-                plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
+                int chance = plugin.getConfig().getInt("explosive-options.block-physics-chance");
+                if (getPivot(0, 100) < chance) {
+                    FallingBlock fallingBlock = b.getWorld().spawnFallingBlock(b.getLocation().clone().add(0.5, 0, 0.5), b.getType(), b.getData());
+                    fallingBlock.setDropItem(false);
+                    fallingBlock.setVelocity(new Vector(getRandomInRange(-0.5, 0.5), getRandomInRange(0.1, 0.6), getRandomInRange(-0.5, 0.5)));
+                    fallingBlock.setMetadata("P_T_G={'EXPLOSIVE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                    plugin.savedExplosiveFallingBlocks.add(fallingBlock.getUniqueId());
+                }
             }
 
             if (!plugin.getConfig().getBoolean("explosive-options.block-drops")) {
