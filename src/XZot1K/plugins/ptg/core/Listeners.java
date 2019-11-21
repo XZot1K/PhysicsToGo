@@ -5,6 +5,7 @@ import XZot1K.plugins.ptg.api.events.HookCallEvent;
 import XZot1K.plugins.ptg.core.internals.LandsHook;
 import XZot1K.plugins.ptg.core.internals.WG_6;
 import XZot1K.plugins.ptg.core.internals.WG_7;
+import XZot1K.plugins.ptg.core.objects.AdjacentTemp;
 import com.bekvon.bukkit.residence.Residence;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.massivecraft.factions.Board;
@@ -12,8 +13,8 @@ import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.massivecore.ps.PS;
+import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.object.Town;
-import com.palmergames.bukkit.towny.object.WorldCoord;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
 import me.ryanhamshire.GriefPrevention.Claim;
@@ -123,51 +124,36 @@ public class Listeners implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")) {
-            if (isInMaterialList("tree-physic-options.effected-break-materials", e.getBlock()) || passedHooks(e.getBlock().getLocation())) {
-                boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
-                int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),
-                        delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
-                        speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
-                for (int i = -1; ++i < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
-                    for (int x = -radius; ++x < radius; )
-                        for (int z = -radius; ++z < radius; ) {
-                            Block block = e.getBlock().getRelative(x, i, z);
-                            if (isInMaterialList("tree-physic-options.effected-physic-materials", block)
-                                    && passedHooks(e.getBlock().getLocation())) {
-                                BlockState blockState = block.getState();
-                                if (blockRegeneration)
-                                    plugin.savedStates.add(blockState);
+            if ((e.getBlock().getType().name().toUpperCase().contains("LEAVES") || e.getBlock().getType().name().toUpperCase().contains("LOG")) && passedHooks(e.getBlock().getLocation())) {
+                if (Objects.requireNonNull(e.getBlock().getWorld()).getMaxHeight() >= e.getBlock().getY()) {
+                    boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
+                    int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),
+                            delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
+                            speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
+                    final BlockFace[] faceList = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH,
+                            BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.EAST, BlockFace.WEST};
+                    for (int y = -1; ++y < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
+                        Block centerBlock = e.getBlock().getRelative(0, y, 0);
+                        if (!centerBlock.getType().name().toUpperCase().contains("LEAVES") && !centerBlock.getType().name().toUpperCase().contains("LOG"))
+                            break;
 
-                                FallingBlock fallingBlock = e.getBlock().getWorld().spawnFallingBlock(
-                                        block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
-                                fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}",
-                                        new FixedMetadataValue(plugin, ""));
-                                fallingBlock.setDropItem(false);
-                                plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+                        if (treeBreakAction(centerBlock, centerBlock, blockRegeneration, radius, delay, faceList))
+                            delay += speed;
+                        if (centerBlock.getType().name().toUpperCase().contains("LEAVES") || centerBlock.getType().name().toUpperCase().contains("LOG"))
+                            continue;
 
-                                if (blockRegeneration) {
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            if (!passedHooks(blockState.getLocation()))
-                                                return;
-                                            blockState.update(true, false);
-                                            if (plugin.getServerVersion().startsWith("v1_7")
-                                                    || plugin.getServerVersion().startsWith("v1_8")
-                                                    || plugin.getServerVersion().startsWith("v1_9")
-                                                    || plugin.getServerVersion().startsWith("v1_10")
-                                                    || plugin.getServerVersion().startsWith("v1_11")
-                                                    || plugin.getServerVersion().startsWith("v1_12"))
-                                                block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND,
-                                                        block.getType().getId());
-                                        }
-                                    }.runTaskLater(plugin, delay);
+                        for (int x = -radius; ++x < radius; )
+                            for (int z = -radius; ++z < radius; ) {
+                                Block adjacentBlock = e.getBlock().getRelative(x, y, z);
+                                if (!adjacentBlock.getType().name().toUpperCase().contains("LEAVES") && !adjacentBlock.getType().name().toUpperCase().contains("LOG"))
+                                    continue;
+
+                                if (treeBreakAction(adjacentBlock, centerBlock, blockRegeneration, radius, delay, faceList))
                                     delay += speed;
-                                }
-
-                                block.setType(Material.AIR);
                             }
-                        }
+                    }
+
+                    return;
                 }
             }
         }
@@ -498,9 +484,8 @@ public class Listeners implements Listener {
             Plugin towny = plugin.getServer().getPluginManager().getPlugin("Towny");
             if (towny != null) {
                 try {
-                    Town town = WorldCoord.parseWorldCoord(location).getTownBlock().getTown();
-                    if (town != null)
-                        safeLocation = false;
+                    Town town = TownyAPI.getInstance().getTownBlock(location).getTown();
+                    if (town != null) safeLocation = false;
                 } catch (Exception ignored) {
                 }
             }
@@ -1003,5 +988,91 @@ public class Listeners implements Listener {
 
         swap(blockList, low, border - 1);
         return border - 1;
+    }
+
+    private boolean isRelative(Block blockToCheckRelatives, Block block, BlockFace[] faceList) {
+        for (int i = -1; ++i < faceList.length; ) {
+            BlockFace face = faceList[i];
+            Block relative = blockToCheckRelatives.getRelative(face);
+            if (relative.getWorld().getName().equalsIgnoreCase(block.getWorld().getName()) && relative.getX() == block.getX()
+                    && relative.getY() == block.getY() && relative.getZ() == block.getZ()) return true;
+        }
+
+        return false;
+    }
+
+    private double distance(Location locationOne, Location locationTwo) {
+        return Math.sqrt(((locationTwo.getBlockX() - locationOne.getBlockX()) ^ 2) + ((locationTwo.getBlockZ() - locationOne.getBlockZ()) ^ 2));
+    }
+
+    private AdjacentTemp checkAdjacents(BlockFace[] faceList, Block block, Block centerBlock, int radius) {
+        AdjacentTemp adjacentTemp = new AdjacentTemp();
+        for (int i = -1; ++i < faceList.length; ) {
+            BlockFace face = faceList[i];
+            Block relative = block.getRelative(face);
+
+            System.out.println(relative.getType() + " - " + face + " - " + block.getY());
+            if (relative.getType().name().toUpperCase().contains("LEAVES") || relative.getType().name().toUpperCase().contains("LOG")) {
+                if (distance(centerBlock.getLocation(), relative.getLocation()) <= radius)
+                    adjacentTemp.getFoundAdjacentTreeBlocks().add(relative);
+                adjacentTemp.setHasTreeBlockOrSimilar(true);
+                return adjacentTemp;
+            } else if (relative.getType().name().contains("AIR") || relative.getType().name().contains("WATER") || relative.getType().name().contains("LAVA")) {
+                adjacentTemp.setHasTreeBlockOrSimilar(true);
+                return adjacentTemp;
+            }
+        }
+
+        return adjacentTemp;
+    }
+
+    private boolean treeBreakAction(Block block, Block centerBlock, boolean blockRegeneration, int radius, int delay, BlockFace[] faceList) {
+        AdjacentTemp adjacentTemp = checkAdjacents(faceList, block, centerBlock, radius);
+        if (!(adjacentTemp.hasTreeBlockOrSimilar())) return false;
+
+        if (passedHooks(block.getLocation())) {
+            System.out.println("passed - " + block.getY());
+            BlockState blockState = block.getState();
+            if (blockRegeneration) plugin.savedStates.add(blockState);
+
+            FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
+            fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+            fallingBlock.setDropItem(false);
+            plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+            if (blockRegeneration) regenerateTreeBlock(block, blockState, delay);
+
+            block.setType(Material.AIR);
+
+            for (int i = -1; ++i < adjacentTemp.getFoundAdjacentTreeBlocks().size(); ) {
+                Block adjacentBlock = adjacentTemp.getFoundAdjacentTreeBlocks().get(i);
+                BlockState adjacentBlockState = adjacentBlock.getState();
+                if (blockRegeneration) plugin.savedStates.add(adjacentBlockState);
+
+                FallingBlock adjacentFallingBlock = adjacentBlock.getWorld().spawnFallingBlock(adjacentBlock.getLocation().clone().add(0.5, 0, 0.5), adjacentBlock.getType(), adjacentBlock.getData());
+                adjacentFallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                adjacentFallingBlock.setDropItem(false);
+                plugin.savedTreeFallingBlocks.add(adjacentFallingBlock.getUniqueId());
+                if (blockRegeneration) regenerateTreeBlock(adjacentBlock, adjacentBlockState, delay);
+
+                adjacentBlock.setType(Material.AIR);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private void regenerateTreeBlock(Block block, BlockState blockState, int delay) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!passedHooks(blockState.getLocation())) return;
+                blockState.update(true, false);
+                if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8")
+                        || plugin.getServerVersion().startsWith("v1_9") || plugin.getServerVersion().startsWith("v1_10")
+                        || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
+                    block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType().getId());
+            }
+        }.runTaskLater(plugin, delay);
     }
 }
