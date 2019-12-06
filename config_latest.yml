@@ -29,9 +29,9 @@ hooks-options:
     use-factions: false
     # If this is enabled, the hook will use Factions UUID over Massive Core.
     factions-uuid: false
-  grief-preventation:
+  grief-prevention:
     # If this is enabled, physics to go features will not work within claimed land.
-    use-grief-preventation: false
+    use-grief-prevention: false
   askyblock:
     # If this is enabled, physics to go features will not work on islands.
     use-askyblock: false

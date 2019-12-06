@@ -41,15 +41,6 @@
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/worldguard-bukkit-7.0.1-SNAPSHOT-dist.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library>
-        <CLASSES>
           <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/worldedit-bukkit-7.1.0-SNAPSHOT-dist.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -68,15 +59,6 @@
     <orderEntry type="module-library" scope="PROVIDED">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/Towny.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library>
-        <CLASSES>
           <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/Residence4.8.6.4.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -87,15 +69,6 @@
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/LandsAPI.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="PROVIDED">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/GriefPrevention.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -154,6 +127,33 @@
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/Kingdoms-13.3.40.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/Towny.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/GriefPrevention.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Java Dependencies/Minecraft/Plugins/worldguard-bukkit-7.0.2-SNAPSHOT-dist.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

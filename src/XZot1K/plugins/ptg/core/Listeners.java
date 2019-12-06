@@ -26,6 +26,7 @@ import org.bukkit.block.*;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -65,8 +66,9 @@ public class Listeners implements Listener {
     }
 
     @SuppressWarnings("deprecation")
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlace(BlockPlaceEvent e) {
+        if (e.isCancelled()) return;
         if (!plugin.getConfig().getBoolean("block-place-options.block-place-event")
                 || e.getPlayer().hasPermission("ptg.bypass.place")
                 || isInList("block-place-options.blacklisted-worlds", e.getBlock().getWorld().getName())
@@ -121,15 +123,23 @@ public class Listeners implements Listener {
     }
 
     @SuppressWarnings("deprecation")
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
+        if (e.isCancelled()) return;
         if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")) {
-            if ((e.getBlock().getType().name().toUpperCase().contains("LEAVES") || e.getBlock().getType().name().toUpperCase().contains("LOG")) && passedHooks(e.getBlock().getLocation())) {
+            if (e.getBlock().getType().name().toUpperCase().contains("LOG") && passedHooks(e.getBlock().getLocation())) {
                 if (Objects.requireNonNull(e.getBlock().getWorld()).getMaxHeight() >= e.getBlock().getY()) {
                     boolean blockRegeneration = plugin.getConfig().getBoolean("tree-physic-options.tree-regeneration.regeneration");
                     int radius = plugin.getConfig().getInt("tree-physic-options.tree-physics-radius"),
                             delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
                             speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
+
+                    BlockState blockState = e.getBlock().getState();
+                    if (blockRegeneration) {
+                        plugin.savedStates.add(blockState);
+                        regenerateTreeBlock(e.getBlock(), blockState, delay);
+                    }
+
                     final BlockFace[] faceList = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH,
                             BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.EAST, BlockFace.WEST};
                     for (int y = -1; ++y < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
@@ -249,7 +259,7 @@ public class Listeners implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockExplode(BlockExplodeEvent e) {
         if (isInList("explosive-options.blacklisted-worlds", Objects.requireNonNull(e.getBlock().getWorld()).getName()))
             return;
@@ -258,7 +268,7 @@ public class Listeners implements Listener {
         else runExplosiveStuff(e);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onExplodeEntity(EntityExplodeEvent e) {
         if (isInList("explosive-options.blacklisted-worlds",
                 Objects.requireNonNull(e.getLocation().getWorld()).getName())
@@ -270,7 +280,7 @@ public class Listeners implements Listener {
     }
 
     @SuppressWarnings("deprecation")
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EntityChangeBlockEvent(EntityChangeBlockEvent e) {
         if (e.getEntity() instanceof FallingBlock) {
             if (plugin.getConfig().getBoolean("tree-physic-options.tree-physics")
@@ -359,7 +369,7 @@ public class Listeners implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPhysics(BlockPhysicsEvent e) {
         if (blockLocationMemory.contains(e.getBlock().getLocation()))
             e.setCancelled(true);
@@ -462,7 +472,7 @@ public class Listeners implements Listener {
             }
         }
 
-        if (plugin.getConfig().getBoolean("hooks-options.grief-preventation.use-grief-preventation")) {
+        if (plugin.getConfig().getBoolean("hooks-options.grief-prevention.use-grief-prevention")) {
             Plugin griefPrevention = plugin.getServer().getPluginManager().getPlugin("GriefPrevention");
             if (griefPrevention != null) {
                 Claim claimAtLocation = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
@@ -517,7 +527,7 @@ public class Listeners implements Listener {
                     && doubleChest.getLeftSide().getBlockX() == location.getBlockX()
                     && doubleChest.getLeftSide().getBlockY() == location.getBlockY()
                     && doubleChest.getLeftSide().getBlockZ() == location.getBlockZ())
-                    || (doubleChest.getRightSide().getWorld().getName().equals(location.getWorld().getName())
+                    || (Objects.requireNonNull(doubleChest.getRightSide().getWorld()).getName().equals(location.getWorld().getName())
                     && doubleChest.getRightSide().getBlockX() == location.getBlockX()
                     && doubleChest.getRightSide().getBlockY() == location.getBlockY()
                     && doubleChest.getRightSide().getBlockZ() == location.getBlockZ())) {
@@ -1011,7 +1021,6 @@ public class Listeners implements Listener {
             BlockFace face = faceList[i];
             Block relative = block.getRelative(face);
 
-            System.out.println(relative.getType() + " - " + face + " - " + block.getY());
             if (relative.getType().name().toUpperCase().contains("LEAVES") || relative.getType().name().toUpperCase().contains("LOG")) {
                 if (distance(centerBlock.getLocation(), relative.getLocation()) <= radius)
                     adjacentTemp.getFoundAdjacentTreeBlocks().add(relative);
@@ -1027,11 +1036,10 @@ public class Listeners implements Listener {
     }
 
     private boolean treeBreakAction(Block block, Block centerBlock, boolean blockRegeneration, int radius, int delay, BlockFace[] faceList) {
-        AdjacentTemp adjacentTemp = checkAdjacents(faceList, block, centerBlock, radius);
-        if (!(adjacentTemp.hasTreeBlockOrSimilar())) return false;
-
         if (passedHooks(block.getLocation())) {
-            System.out.println("passed - " + block.getY());
+            AdjacentTemp adjacentTemp = checkAdjacents(faceList, block, centerBlock, radius);
+            if (!(adjacentTemp.hasTreeBlockOrSimilar())) return false;
+
             BlockState blockState = block.getState();
             if (blockRegeneration) plugin.savedStates.add(blockState);
 
