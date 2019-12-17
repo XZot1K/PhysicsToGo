@@ -1028,7 +1028,7 @@ public class Listeners implements Listener {
             BlockState blockState = block.getState();
             if (blockRegeneration) plugin.savedStates.add(blockState);
 
-            if (isInMaterialList("tree-physic-options.falling-block-blacklist", block)) {
+            if (!isInMaterialList("tree-physic-options.falling-block-blacklist", block)) {
                 FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
                 fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
                 fallingBlock.setDropItem(false);
