@@ -8,6 +8,7 @@ import XZot1K.plugins.ptg.core.internals.LandsHook;
 import XZot1K.plugins.ptg.core.objects.DoubleChest;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -74,6 +75,7 @@ public class PhysicsToGo extends JavaPlugin {
         }
 
         for (BlockState state : savedStates) {
+            if (state.getType() == Material.AIR) continue;
             state.update(true, false);
             state.update();
             restoreCounter += 1;

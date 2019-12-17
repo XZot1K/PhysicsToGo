@@ -105,7 +105,8 @@ public class Listeners implements Listener {
                     return;
 
                 e.getBlockReplacedState().update(true, true);
-                if (!plugin.getServerVersion().startsWith("v1_13") && !plugin.getServerVersion().startsWith("v1_14")) {
+                if (!plugin.getServerVersion().startsWith("v1_13") && !plugin.getServerVersion().startsWith("v1_14")
+                        && !plugin.getServerVersion().startsWith("v1_15")) {
                     /*
                      * try { Method closeMethod = e.getBlock().getClass().getMethod("setData",
                      * Short.class); if (closeMethod != null)
@@ -134,15 +135,17 @@ public class Listeners implements Listener {
                             delay = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.delay"),
                             speed = plugin.getConfig().getInt("tree-physic-options.tree-regeneration.speed");
 
-                    BlockState blockState = e.getBlock().getState();
+                    e.setCancelled(true);
+                    final BlockState blockState = e.getBlock().getState();
                     if (blockRegeneration) {
                         plugin.savedStates.add(blockState);
+                        e.getBlock().setType(Material.AIR);
                         regenerateTreeBlock(e.getBlock(), blockState, delay);
                     }
 
                     final BlockFace[] faceList = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH,
                             BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.EAST, BlockFace.WEST};
-                    for (int y = -1; ++y < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
+                    for (int y = 0; ++y < (e.getBlock().getWorld().getMaxHeight() - e.getBlock().getY()); ) {
                         Block centerBlock = e.getBlock().getRelative(0, y, 0);
                         if (!centerBlock.getType().name().toUpperCase().contains("LEAVES") && !centerBlock.getType().name().toUpperCase().contains("LOG"))
                             break;
@@ -209,8 +212,7 @@ public class Listeners implements Listener {
             }
         }
 
-        boolean regenerationAboveHeight = plugin.getConfig()
-                .getBoolean("block-break-options.regeneration-above-height");
+        boolean regenerationAboveHeight = plugin.getConfig().getBoolean("block-break-options.regeneration-above-height");
         int heightLimit = plugin.getConfig().getInt("block-break-options.regeneration-height");
         if (blockRegeneration && (regenerationAboveHeight ? (heightLimit <= -1 || e.getBlock().getY() >= heightLimit)
                 : (heightLimit <= -1 || e.getBlock().getY() <= heightLimit))) {
@@ -607,9 +609,8 @@ public class Listeners implements Listener {
                     if (state instanceof InventoryHolder) {
                         if (!restoreLocations.contains(b.getLocation())) {
                             InventoryHolder ih = (InventoryHolder) state;
-                            if (ih.getInventory().getHolder() instanceof DoubleChest
-                                    && (plugin.getServerVersion().startsWith("v1_13")
-                                    || plugin.getServerVersion().startsWith("v1_14"))) {
+                            if (ih.getInventory().getHolder() instanceof DoubleChest && (plugin.getServerVersion().startsWith("v1_13")
+                                    || plugin.getServerVersion().startsWith("v1_14") || plugin.getServerVersion().startsWith("v1_15"))) {
                                 Chest chest = (Chest) state;
                                 DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
                                 Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
@@ -676,15 +677,12 @@ public class Listeners implements Listener {
                         Objects.requireNonNull(ih.getInventory().getHolder()).getInventory().clear();
                     }
 
-                    if (state instanceof Chest && plugin.getServerVersion().startsWith("v1_13")
-                            || plugin.getServerVersion().startsWith("v1_14") && restorationMemory)
+                    if (state instanceof Chest && (plugin.getServerVersion().startsWith("v1_13") || plugin.getServerVersion().startsWith("v1_14")
+                            || plugin.getServerVersion().startsWith("v1_15")) && restorationMemory)
                         restoreDoubleChestAtLocation(b.getLocation());
 
-                    if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8")
-                            || plugin.getServerVersion().startsWith("v1_9")
-                            || plugin.getServerVersion().startsWith("v1_10")
-                            || plugin.getServerVersion().startsWith("v1_11")
-                            || plugin.getServerVersion().startsWith("v1_12"))
+                    if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8") || plugin.getServerVersion().startsWith("v1_9")
+                            || plugin.getServerVersion().startsWith("v1_10") || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                         b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                     if (restorationMemory)
@@ -817,8 +815,8 @@ public class Listeners implements Listener {
                         if (!restoreLocations.contains(b.getLocation())) {
                             InventoryHolder ih = (InventoryHolder) state;
                             if (ih.getInventory().getHolder() instanceof DoubleChest
-                                    && (plugin.getServerVersion().startsWith("v1_13")
-                                    || plugin.getServerVersion().startsWith("v1_14"))) {
+                                    && (plugin.getServerVersion().startsWith("v1_13") || plugin.getServerVersion().startsWith("v1_14")
+                                    || plugin.getServerVersion().startsWith("v1_15"))) {
                                 Chest chest = (Chest) state;
                                 DoubleChest dc = (DoubleChest) ih.getInventory().getHolder();
                                 Chest left = (Chest) dc.getLeftSide(), right = (Chest) dc.getRightSide();
@@ -885,15 +883,13 @@ public class Listeners implements Listener {
                         Objects.requireNonNull(ih.getInventory().getHolder()).getInventory().clear();
                     }
 
-                    if (state instanceof Chest && plugin.getServerVersion().startsWith("v1_13")
-                            || plugin.getServerVersion().startsWith("v1_14") && restorationMemory)
+                    if (state instanceof Chest && (plugin.getServerVersion().startsWith("v1_13") || plugin.getServerVersion().startsWith("v1_14")
+                            || plugin.getServerVersion().startsWith("v1_15")) && restorationMemory)
                         restoreDoubleChestAtLocation(b.getLocation());
 
                     if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8")
-                            || plugin.getServerVersion().startsWith("v1_9")
-                            || plugin.getServerVersion().startsWith("v1_10")
-                            || plugin.getServerVersion().startsWith("v1_11")
-                            || plugin.getServerVersion().startsWith("v1_12"))
+                            || plugin.getServerVersion().startsWith("v1_9") || plugin.getServerVersion().startsWith("v1_10")
+                            || plugin.getServerVersion().startsWith("v1_11") || plugin.getServerVersion().startsWith("v1_12"))
                         b.getWorld().playEffect(b.getLocation(), Effect.STEP_SOUND, b.getType().getId());
 
                     if (restorationMemory)
@@ -1000,17 +996,6 @@ public class Listeners implements Listener {
         return border - 1;
     }
 
-    private boolean isRelative(Block blockToCheckRelatives, Block block, BlockFace[] faceList) {
-        for (int i = -1; ++i < faceList.length; ) {
-            BlockFace face = faceList[i];
-            Block relative = blockToCheckRelatives.getRelative(face);
-            if (relative.getWorld().getName().equalsIgnoreCase(block.getWorld().getName()) && relative.getX() == block.getX()
-                    && relative.getY() == block.getY() && relative.getZ() == block.getZ()) return true;
-        }
-
-        return false;
-    }
-
     private double distance(Location locationOne, Location locationTwo) {
         return Math.sqrt(((locationTwo.getBlockX() - locationOne.getBlockX()) ^ 2) + ((locationTwo.getBlockZ() - locationOne.getBlockZ()) ^ 2));
     }
@@ -1043,10 +1028,13 @@ public class Listeners implements Listener {
             BlockState blockState = block.getState();
             if (blockRegeneration) plugin.savedStates.add(blockState);
 
-            FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
-            fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
-            fallingBlock.setDropItem(false);
-            plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+            if (isInMaterialList("tree-physic-options.falling-block-blacklist", block)) {
+                FallingBlock fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
+                fallingBlock.setMetadata("P_T_G={'TREE_FALLING_BLOCK'}", new FixedMetadataValue(plugin, ""));
+                fallingBlock.setDropItem(false);
+                plugin.savedTreeFallingBlocks.add(fallingBlock.getUniqueId());
+            }
+
             if (blockRegeneration) regenerateTreeBlock(block, blockState, delay);
 
             block.setType(Material.AIR);
@@ -1074,6 +1062,7 @@ public class Listeners implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
+                plugin.savedStates.remove(blockState);
                 if (!passedHooks(blockState.getLocation())) return;
                 blockState.update(true, false);
                 if (plugin.getServerVersion().startsWith("v1_7") || plugin.getServerVersion().startsWith("v1_8")

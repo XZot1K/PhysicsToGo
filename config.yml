@@ -178,6 +178,9 @@ tree-physic-options:
     speed: 5
     # This option is how long before the regeneration process takes place in ticks (Note: 20 ticks equals 1 second.)
     delay: 30
+  # If any block materials are added to this list, tree falling block physics will not be applied to them.
+  # The format is: <material>:<durability> (Durability can be set to -1 to avoid that check)
+  falling-block-blacklist: []
 
 block-place-options:
   # If this is enabled PTG will listen when a player places a block and perform effects.
