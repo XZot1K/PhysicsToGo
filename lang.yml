@@ -1,0 +1,5 @@
+# These are all the configurable messages that can be configured (Set the message "" to disable).
+messages:
+  usage: "&cUsage: /ptg <reload>"
+  reloaded: "&aAll configurations have been reloaded for PhysicsToGo."
+  no-permission: "&cYou don't have permission to use this."

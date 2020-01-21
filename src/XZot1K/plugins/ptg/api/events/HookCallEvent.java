@@ -4,41 +4,34 @@ import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class HookCallEvent extends Event
-{
+public class HookCallEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
     private boolean safeLocation;
     private Location location;
 
-    public HookCallEvent(Location location, boolean isSafeLocation)
-    {
+    public HookCallEvent(Location location, boolean isSafeLocation) {
         setSafeLocation(isSafeLocation);
         setLocation(location);
     }
 
     @Override
-    public HandlerList getHandlers()
-    {
+    public HandlerList getHandlers() {
         return handlers;
     }
 
-    public boolean isSafeLocation()
-    {
+    public boolean isSafeLocation() {
         return safeLocation;
     }
 
-    public void setSafeLocation(boolean safeLocation)
-    {
+    public void setSafeLocation(boolean safeLocation) {
         this.safeLocation = safeLocation;
     }
 
-    public Location getLocation()
-    {
+    public Location getLocation() {
         return location;
     }
 
-    private void setLocation(Location location)
-    {
+    private void setLocation(Location location) {
         this.location = location;
     }
 }

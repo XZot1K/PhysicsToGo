@@ -17,6 +17,7 @@ import com.palmergames.bukkit.towny.TownyAPI;
 import com.palmergames.bukkit.towny.object.Town;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
+import de.browniecodez.feudal.main.Main;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Effect;
@@ -40,9 +41,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import org.kingdoms.constants.land.Land;
-import org.kingdoms.constants.land.SimpleChunkLocation;
-import us.forseth11.feudal.core.Feudal;
 
 import java.util.*;
 
@@ -435,16 +433,8 @@ public class Listeners implements Listener {
         }
 
         if (plugin.getConfig().getBoolean("hooks-options.feudal.use-hook")
-                && Feudal.getAPI().getKingdom(location) != null) {
+                && Main.getAPI().getKingdom(location) != null) {
             safeLocation = false;
-        }
-
-        if (plugin.getConfig().getBoolean("hooks-options.kingdoms.use-hook")) {
-            if (plugin.getServer().getPluginManager().getPlugin("Kingdoms") != null) {
-                Land land = new Land(new SimpleChunkLocation(location.getChunk()));
-                if (land.getOwner() != null)
-                    safeLocation = false;
-            }
         }
 
         if (plugin.getConfig().getBoolean("hooks-options.factions.use-factions")) {
