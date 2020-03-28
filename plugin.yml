@@ -1,26 +1,34 @@
 name: PhysicsToGo
-version: 1.9.4
+version: 2.0 (Build 1)
 api-version: 1.13
-main: XZot1K.plugins.ptg.PhysicsToGo
+main: xzot1k.plugins.ptg.PhysicsToGo
 author: XZot1K
 description: PhysicsToGo is a lightweight physics & environmental regeneration plugin.
-softdepend: [WorldGuard, WorldEdit, Factions, MassiveCore, Residence, Towny, Feudal, Kingdoms]
 commands:
-  ptg:
+
+  physicstogo:
     default: op
+    description: The initial command for the plugin which handles it all.
+    aliases: [ptg]
+
 permissions:
-  ptg.bypass:
+
+  ptg.*:
     default: op
-    description: Enables the player to bypass all enabled bypassable modules.
+    description: Gives all possible permissions provided by the plugin.
     children:
-      ptg.bypass.break: true
-      ptg.bypass.place: true
-  ptg.bypass.break:
+      ptg.info: true
+      ptg.reload: true
+      ptg.help: true
+
+  ptg.info:
     default: op
-    description: Enables the player to break blocks without them being regenerated (If the module is enabled).
-  ptg.bypass.place:
-    default: op
-    description: Enables the player to place blocks without them being reverted (If the module is enabled).
+    description: Displays information about the currently plugin build.
+
   ptg.reload:
     default: op
-    description: Enables the player to use the reload command.
+    description: Reloads the configurations and performs clean up time.
+
+  ptg.help:
+    default: op
+    description: Allows the sender to see the help message.
