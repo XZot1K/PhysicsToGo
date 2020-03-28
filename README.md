@@ -1,3 +1,5 @@
+<img src="https://imgur.com/cCjihnu.png" width="150px" height="150px">
+
 # How to use PhysicsToGo (PTG) API in your plugin
 
 In order to properly use PhysicsToGo you will need to be able to retrieve the plugin's instance. You can do this by following these instructions:
