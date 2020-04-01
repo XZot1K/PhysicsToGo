@@ -130,7 +130,7 @@ public class TreePhysicsTask implements Runnable {
             getPluginInstance().getManager().createFallingBlock(block, blockState, false, useGravity());
 
         if (canRegenerate())
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState), delay);
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);
 
     }
 

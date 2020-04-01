@@ -38,5 +38,54 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins/WorldEdit/WorldEdit 7.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins/WorldEdit/WorldEdit 6.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins/WorldGuard/WorldGuard 7.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="PROVIDED">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../Minecraft/Dependencies/Plugins/WorldGuard/WorldGuard 6.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

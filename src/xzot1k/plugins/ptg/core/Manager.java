@@ -90,9 +90,9 @@ public class Manager {
      * @return If the server is post 1.13.
      */
     public boolean isBlockDataVersion() {
-        return !(getPluginInstance().getServerVersion().equalsIgnoreCase("v1_12") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_11")
-                || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_10") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_9")
-                || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_8") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_7"));
+        return !(getPluginInstance().getServerVersion().startsWith("v1_12") || getPluginInstance().getServerVersion().startsWith("v1_11")
+                || getPluginInstance().getServerVersion().startsWith("v1_10") || getPluginInstance().getServerVersion().startsWith("v1_9")
+                || getPluginInstance().getServerVersion().startsWith("v1_8") || getPluginInstance().getServerVersion().startsWith("v1_7"));
     }
 
     /**
@@ -173,6 +173,32 @@ public class Manager {
     public boolean isBlockedExplosiveEntity(EntityType entityType) {
         for (String entityTypeName : getPluginInstance().getConfig().getStringList("explosive-blocked-entities"))
             if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
+                return true;
+        return false;
+    }
+
+    /**
+     * Checks to see if the entity can regenerate blocks it exploded.
+     *
+     * @param entityType The entity type to check for.
+     * @return Whether it can regenerate blocks or not.
+     */
+    public boolean isBlockedExplosiveRegenEntity(EntityType entityType) {
+        for (String entityTypeName : getPluginInstance().getConfig().getStringList("blocked-entity-regeneration"))
+            if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
+                return true;
+        return false;
+    }
+
+    /**
+     * Checks to see if the world is blocked.
+     *
+     * @return Whether the world is blocked or not.
+     */
+    public boolean isBlockedWorld(World world) {
+        if (world == null) return false;
+        for (String entityTypeName : getPluginInstance().getConfig().getStringList("world-blacklist"))
+            if (world.getName().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
                 return true;
         return false;
     }

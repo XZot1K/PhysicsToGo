@@ -4,6 +4,7 @@
 # YOU CAN GENERALIZE LIST VALUES. FOR EXAMPLE, ENTERING "MINECART" IN AN ENTITY BLOCK LIST WILL BLOCK ALL ENTITIES THAT CONTAIN THE WORD "MINECART"
 # IN THEIR ENTITY TYPE NAME.
 #
+# The "block-in-factions" option is an extra step which will not perform any PTG tasks in Faction claims under any circumstance.
 #
 # The "state-override" option determines if actions such as explosives, placing, or break of existing locations where regeneration effects are scheduled will be allowed to merge.
 # (For Example: When a player breaks a block and it is scheduled to regenerate, this will allow them to place block at that same location etc.)
@@ -47,6 +48,8 @@
 # The "explosive-tnt-fuse" option tells the plugin what the fuse of harmed tnt blocks should be (IN TICKS, 20 ticks = 1 second). This
 # option requires the "explosive-tnt-ignite" feature to be enabled.
 #
+# The "blocked-entity-regeneration" is a list that will prevent explosive block regeneration entirely if the explosion was caused by an entity in this list.
+#
 # The "explosive-blocked-entities" is a list that will block explosive damage and effects toward all entity types found in the list.
 #
 # The "place-removal" option determines if block placed by the player will regenerate after a delay.
@@ -66,10 +69,13 @@
 # The "break-only-effected" list will act as a whitelist when the "break-regeneration" option is enabled. All materials in the list will regenerate after a
 # delay to their original material. (NOTE: This list will be avoided if it is empty.)
 #
+# The "world-blacklist" list will block all PTG actions in the defined worlds.
+#
 # The "avoided-materials" list should contain all materials that should be avoided like the black plague. Essentially these materials
 # are safe from the plugins actions at all costs.
 #
 
+block-in-factions: false
 state-override: false
 block-forming: false
 
@@ -90,6 +96,7 @@ explosive-physics: true
 explosive-drops: true
 explosive-tnt-ignite: true
 explosive-tnt-fuse: 10
+blocked-entity-regeneration: []
 explosive-blocked-entities:
   - "ARMOR_STAND"
   - "PAINTING"
@@ -107,6 +114,7 @@ break-regeneration-delay: 20
 break-only-effected:
   - "ORE"
 
+world-blacklist: []
 avoided-materials:
   - "BEDROCK"
   - "OBSIDIAN"

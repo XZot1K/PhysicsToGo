@@ -22,11 +22,13 @@ public class BlockRegenerationTask implements Runnable {
     private PhysicsToGo pluginInstance;
     private Block block;
     private BlockState blockState;
+    private boolean isPlacement;
 
-    public BlockRegenerationTask(PhysicsToGo pluginInstance, Block block, BlockState blockState) {
+    public BlockRegenerationTask(PhysicsToGo pluginInstance, Block block, BlockState blockState, boolean isPlacement) {
         setPluginInstance(pluginInstance);
         setBlock(block);
         setBlockState(blockState);
+        setPlacement(isPlacement);
     }
 
     @Override
@@ -34,8 +36,10 @@ public class BlockRegenerationTask implements Runnable {
         if (getBlockState() == null) return;
         getPluginInstance().getManager().getSavedBlockStates().remove(getBlockState()); // clears the saved state.
 
-        if (getBlock() == null || (getBlock().getType() != Material.AIR && !getBlock().getType().name().contains("WATER") && !getBlock().getType().name().contains("LAVA")))
-            return;
+        if (getBlock() == null) return;
+        if (!getPluginInstance().getConfig().getBoolean("state-override") && !isPlacement())
+            if (getBlock().getType() != Material.AIR && !getBlock().getType().name().contains("WATER") && !getBlock().getType().name().contains("LAVA"))
+                return;
 
         RegenerateEvent regenerateEvent = new RegenerateEvent(getPluginInstance(), getBlockState());
         getPluginInstance().getServer().getPluginManager().callEvent(regenerateEvent);
@@ -99,5 +103,13 @@ public class BlockRegenerationTask implements Runnable {
 
     private void setPluginInstance(PhysicsToGo pluginInstance) {
         this.pluginInstance = pluginInstance;
+    }
+
+    public boolean isPlacement() {
+        return isPlacement;
+    }
+
+    private void setPlacement(boolean placement) {
+        isPlacement = placement;
     }
 }

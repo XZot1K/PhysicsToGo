@@ -38,36 +38,49 @@ public class Listeners implements Listener {
 
     @EventHandler
     public void onDecay(LeavesDecayEvent e) {
-        if (getPluginInstance().getAdvancedConfig().getBoolean("cancel-decay-radius"))
+        if (getPluginInstance().getAdvancedConfig().getBoolean("cancel-decay-radius") && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())) {
+            if (getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
+
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
                 if (blockState.getWorld().getName().equals(e.getBlock().getWorld().getName()) && blockState.getLocation().distance(e.getBlock().getLocation()) < 5) {
                     e.setCancelled(true);
                     break;
                 }
+        }
     }
 
     @EventHandler
     public void onFall(BlockPhysicsEvent e) {
-        if (getPluginInstance().getAdvancedConfig().getBoolean("cancel-fall-radius"))
+        if (getPluginInstance().getAdvancedConfig().getBoolean("cancel-fall-radius") && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())) {
+            if (getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
+
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
                 if (blockState.getWorld().getName().equals(e.getSourceBlock().getWorld().getName()) && blockState.getLocation().distance(e.getSourceBlock().getLocation()) < 5) {
                     e.setCancelled(true);
                     break;
                 }
+        }
     }
 
     @EventHandler
     public void onFlow(BlockFromToEvent e) {
-        if ((e.getBlock().getType().name().contains("WATER") || e.getBlock().getType().name().contains("LAVA")) && getPluginInstance().getAdvancedConfig().getBoolean("cancel-flow-radius"))
+        if ((e.getBlock().getType().name().contains("WATER") || e.getBlock().getType().name().contains("LAVA")) && getPluginInstance().getAdvancedConfig().getBoolean("cancel-flow-radius")
+                && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())) {
+            if (getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
+
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
                 if (blockState.getWorld().getName().equals(e.getToBlock().getWorld().getName()) && blockState.getLocation().distance(e.getToBlock().getLocation()) < 5) {
                     e.setCancelled(true);
                     break;
                 }
+        }
     }
 
     @EventHandler
     public void onForm(EntityChangeBlockEvent e) {
+        if (getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())
+                || getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
+
         if (e.getEntity().getType() == EntityType.FALLING_BLOCK && (e.getEntity().getCustomName() != null && e.getEntity().getCustomName().toUpperCase().contains("PTG_FALLING_BLOCK"))
                 && !getPluginInstance().getConfig().getBoolean("block-forming")) {
             e.setCancelled(true);
@@ -82,24 +95,27 @@ public class Listeners implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlace(BlockPlaceEvent e) {
-        if (e.isCancelled()) return;
+        if (e.isCancelled() || getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())
+                || getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
 
         if (getPluginInstance().getConfig().getBoolean("place-removal")) {
-            final BlockState blockState = e.getBlock().getState();
+            final BlockState blockState = e.getBlockReplacedState();
+
             if (checkPlaceState(e, blockState)) return;
 
-            if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(blockState.getType()))
+            if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType()))
                 return;
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState),
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlockReplacedState().getBlock(), blockState, true),
                     getPluginInstance().getConfig().getInt("place-removal-delay"));
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
-        if (e.isCancelled()) return;
+        if (e.isCancelled() || getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld())
+                || getPluginInstance().doesNotPassFactionClaimCheck(e.getBlock().getLocation())) return;
 
         boolean skipToBreakAction = false;
         if (e.getBlock().getType().name().contains("LOG") && getPluginInstance().getConfig().getBoolean("tree-physics")) {
@@ -144,14 +160,14 @@ public class Listeners implements Listener {
             else if (blockState instanceof Sign)
                 getPluginInstance().getManager().getSavedSignData().put(new LocationClone(getPluginInstance(), e.getBlock().getLocation()), ((Sign) blockState).getLines());
 
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState),
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false),
                     getPluginInstance().getConfig().getInt("break-regeneration-delay"));
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onExplode(EntityExplodeEvent e) {
-        if (e.isCancelled()) return;
+        if (e.isCancelled() || getPluginInstance().getManager().isBlockedWorld(e.getLocation().getWorld())) return;
 
         if (getPluginInstance().getConfig().getBoolean("no-entity-explosions")) {
             e.blockList().clear();
@@ -165,7 +181,7 @@ public class Listeners implements Listener {
         getPluginInstance().getManager().sortFromLowestToHighest(e.blockList());
         for (int i = -1; ++i < e.blockList().size(); ) {
             final Block block = e.blockList().get(i);
-            if (block == null) continue;
+            if (block == null || getPluginInstance().doesNotPassFactionClaimCheck(block.getLocation())) continue;
 
             final BlockState blockState = block.getState();
             if (checkExplosiveState(e, blockState)) return;
@@ -193,18 +209,22 @@ public class Listeners implements Listener {
             if (getPluginInstance().getConfig().getBoolean("explosive-physics") && getPluginInstance().getManager().getRandom().nextInt() < 50)
                 getPluginInstance().getManager().createFallingBlock(block, blockState, true, false);
 
-            if (!getPluginInstance().getConfig().getBoolean("explosive-regeneration")) continue;
-            getPluginInstance().getManager().getSavedBlockStates().add(blockState);
+            if (!getPluginInstance().getConfig().getBoolean("explosive-regeneration") || getPluginInstance().getManager().isBlockedExplosiveRegenEntity(e.getEntity().getType()))
+                continue;
 
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState), delay);
+            getPluginInstance().getManager().getSavedBlockStates().add(blockState);
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);
             delay += speed;
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDeath(EntityDamageEvent e) {
-        if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION && getPluginInstance().getManager().isBlockedExplosiveEntity(e.getEntity().getType()))
+        if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION && (getPluginInstance().getManager().isBlockedExplosiveEntity(e.getEntity().getType())
+                || getPluginInstance().getManager().isBlockedWorld(e.getEntity().getWorld()))) {
+            if (getPluginInstance().doesNotPassFactionClaimCheck(e.getEntity().getLocation())) return;
             e.setCancelled(true);
+        }
     }
 
     // helper methods
