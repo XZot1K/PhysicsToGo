@@ -197,8 +197,8 @@ public class Manager {
      */
     public boolean isBlockedWorld(World world) {
         if (world == null) return false;
-        for (String entityTypeName : getPluginInstance().getConfig().getStringList("world-blacklist"))
-            if (world.getName().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
+        for (String worldName : getPluginInstance().getConfig().getStringList("world-blacklist"))
+            if (world.getName().equalsIgnoreCase(worldName))
                 return true;
         return false;
     }
