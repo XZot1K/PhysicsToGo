@@ -11,21 +11,16 @@ import xzot1k.plugins.ptg.PhysicsToGo;
 public class FactionsHook {
 
     private PhysicsToGo pluginInstance;
-    private boolean factionsInstalled, massive;
+    private boolean massive;
 
-    public FactionsHook(PhysicsToGo pluginInstance) {
+    public FactionsHook(PhysicsToGo pluginInstance, Plugin factions) {
         setPluginInstance(pluginInstance);
 
-        Plugin factions = getPluginInstance().getServer().getPluginManager().getPlugin("Factions");
-        setFactionsInstalled(factions != null);
-
-        setMassive(factions == null || factions.getDescription().getDepend().contains("MassiveCore"));
+        setMassive(factions.getDescription().getDepend().contains("MassiveCore"));
     }
 
     public boolean isInFactionClaim(Location location) {
-        if (!isFactionsInstalled()) return false;
-
-        if (isMassive()) {
+        if (!isMassive()) {
             com.massivecraft.factions.FLocation fLocation = new com.massivecraft.factions.FLocation(location);
             com.massivecraft.factions.Faction factionAtLocation = com.massivecraft.factions.Board.getInstance().getFactionAt(fLocation);
             return factionAtLocation != null && !factionAtLocation.isWilderness();
@@ -33,14 +28,6 @@ public class FactionsHook {
             com.massivecraft.factions.entity.Faction factionAtLocation = com.massivecraft.factions.entity.BoardColl.get().getFactionAt(com.massivecraft.massivecore.ps.PS.valueOf(location));
             return factionAtLocation != null && !factionAtLocation.getId().equalsIgnoreCase(com.massivecraft.factions.entity.FactionColl.get().getNone().getId());
         }
-    }
-
-    public boolean isFactionsInstalled() {
-        return factionsInstalled;
-    }
-
-    private void setFactionsInstalled(boolean factionsInstalled) {
-        this.factionsInstalled = factionsInstalled;
     }
 
     public boolean isMassive() {

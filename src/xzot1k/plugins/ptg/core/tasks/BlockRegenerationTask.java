@@ -49,6 +49,8 @@ public class BlockRegenerationTask implements Runnable {
         getPluginInstance().getManager().playNaturalBlockPlaceEffect(getBlock());
 
         if (getBlockState() instanceof InventoryHolder) {
+            if (!getPluginInstance().getConfig().getBoolean("container-restoration")) return;
+
             InventoryHolder ih = (InventoryHolder) getBlockState();
 
             List<LocationClone> locationClones = new ArrayList<>(getPluginInstance().getManager().getSavedContainerContents().keySet());
@@ -64,6 +66,8 @@ public class BlockRegenerationTask implements Runnable {
             }
 
         } else if (getBlockState() instanceof Sign) {
+            if (!getPluginInstance().getConfig().getBoolean("sign-restoration")) return;
+
             Sign sign = (Sign) getBlockState();
             List<LocationClone> locationClones = new ArrayList<>(getPluginInstance().getManager().getSavedSignData().keySet());
             for (int i = -1; ++i < locationClones.size(); ) {

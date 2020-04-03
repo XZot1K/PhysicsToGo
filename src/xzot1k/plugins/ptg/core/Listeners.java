@@ -28,6 +28,9 @@ import xzot1k.plugins.ptg.core.tasks.BlockRegenerationTask;
 import xzot1k.plugins.ptg.core.tasks.TreePhysicsTask;
 import xzot1k.plugins.ptg.events.PhysicsActionEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Listeners implements Listener {
 
     private PhysicsToGo pluginInstance;
@@ -156,10 +159,10 @@ public class Listeners implements Listener {
 
             if (getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType())) return;
 
-            if (blockState instanceof InventoryHolder)
+            if (blockState instanceof InventoryHolder && getPluginInstance().getConfig().getBoolean("container-restoration"))
                 getPluginInstance().getManager().getSavedContainerContents().put(new LocationClone(getPluginInstance(), e.getBlock().getLocation()),
                         ((InventoryHolder) blockState).getInventory().getContents());
-            else if (blockState instanceof Sign)
+            else if (blockState instanceof Sign && getPluginInstance().getConfig().getBoolean("sign-restoration"))
                 getPluginInstance().getManager().getSavedSignData().put(new LocationClone(getPluginInstance(), e.getBlock().getLocation()), ((Sign) blockState).getLines());
 
             getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false),
@@ -180,18 +183,21 @@ public class Listeners implements Listener {
                 speed = getPluginInstance().getConfig().getInt("explosive-regeneration-speed");
         final boolean explosiveDrops = getPluginInstance().getConfig().getBoolean("explosive-drops");
 
-        getPluginInstance().getManager().sortFromLowestToHighest(e.blockList());
-        for (int i = -1; ++i < e.blockList().size(); ) {
-            final Block block = e.blockList().get(i);
+        List<Block> blockList = new ArrayList<>(e.blockList());
+        getPluginInstance().getManager().sortFromLowestToHighest(blockList);
+
+        for (Block block : blockList) {
             if (block == null || getPluginInstance().doesNotPassHooksCheck(block.getLocation())) continue;
 
             final BlockState blockState = block.getState();
-            if (checkExplosiveState(e, blockState)) return;
+            if (checkExplosiveState(e, blockState)) continue;
 
             if (getPluginInstance().getManager().isAvoidedMaterial(block.getType())) {
                 e.blockList().remove(block);
                 continue;
             }
+
+            getPluginInstance().getManager().playNaturalBlockBreakEffect(block); // play special effect
 
             if (block.getType().name().contains("TNT") && getPluginInstance().getConfig().getBoolean("explosive-tnt-ignite")) {
                 e.blockList().remove(block);
@@ -201,19 +207,23 @@ public class Listeners implements Listener {
                 continue;
             }
 
+            if (getPluginInstance().getConfig().getBoolean("explosive-physics") && getPluginInstance().getManager().getRandom().nextInt() < 50)
+                getPluginInstance().getManager().createFallingBlock(block, blockState, true, false);
+
             if (!explosiveDrops) {
                 e.setYield(0);
                 block.setType(Material.AIR);
             }
 
-            getPluginInstance().getManager().playNaturalBlockBreakEffect(block);
-
-            if (getPluginInstance().getConfig().getBoolean("explosive-physics") && getPluginInstance().getManager().getRandom().nextInt() < 50)
-                getPluginInstance().getManager().createFallingBlock(block, blockState, true, false);
-
             if (!getPluginInstance().getConfig().getBoolean("explosive-regeneration") || getPluginInstance().getManager().isBlockedExplosiveRegenEntity(e.getEntity().getType())
                     || getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))
                 continue;
+
+            if (blockState instanceof InventoryHolder && getPluginInstance().getConfig().getBoolean("container-restoration"))
+                getPluginInstance().getManager().getSavedContainerContents().put(new LocationClone(getPluginInstance(), block.getLocation()),
+                        ((InventoryHolder) blockState).getInventory().getContents());
+            else if (blockState instanceof Sign && getPluginInstance().getConfig().getBoolean("sign-restoration"))
+                getPluginInstance().getManager().getSavedSignData().put(new LocationClone(getPluginInstance(), block.getLocation()), ((Sign) blockState).getLines());
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
             getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);

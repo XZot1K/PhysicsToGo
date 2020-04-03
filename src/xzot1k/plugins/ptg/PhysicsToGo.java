@@ -14,6 +14,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xzot1k.plugins.ptg.core.Commands;
 import xzot1k.plugins.ptg.core.Listeners;
@@ -82,7 +83,9 @@ public class PhysicsToGo extends JavaPlugin {
         }
 
         // setup hooks
-        setFactionsHook(new FactionsHook(this));
+        Plugin factions = getServer().getPluginManager().getPlugin("Factions");
+        if (factions != null)
+            setFactionsHook(new FactionsHook(this, factions));
 
         if (getServer().getPluginManager().getPlugin("Lands") != null)
             setLandsHook(new LandsHook(this));

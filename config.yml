@@ -80,6 +80,8 @@
 block-in-factions: false
 state-override: false
 block-forming: false
+container-restoration: true
+sign-restoration: true
 
 tree-physics: true
 tree-regeneration: true
