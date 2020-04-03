@@ -83,7 +83,9 @@ public class PhysicsToGo extends JavaPlugin {
 
         // setup hooks
         setFactionsHook(new FactionsHook(this));
-        setLandsHook(new LandsHook(this));
+
+        if (getServer().getPluginManager().getPlugin("Lands") != null)
+            setLandsHook(new LandsHook(this));
 
         // registers the listeners class
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
@@ -135,7 +137,7 @@ public class PhysicsToGo extends JavaPlugin {
      */
     public boolean doesNotPassHooksCheck(Location location) {
         return ((getPluginInstance().getConfig().getBoolean("block-in-factions") && getFactionsHook().isInFactionClaim(location))
-                || getLandsHook().getLandsIntegration().isClaimed(location));
+                || (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)));
     }
 
     // general helper methods
