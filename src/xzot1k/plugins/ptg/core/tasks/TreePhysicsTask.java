@@ -48,7 +48,8 @@ public class TreePhysicsTask implements Runnable {
     @Override
     public void run() {
         Block currentTrunkBlock = getInitialBlockState().getBlock().getRelative(0, getCurrentHeight(), 0);
-        if (getPluginInstance().getManager().isNotTreeBlock(currentTrunkBlock) || getPluginInstance().getManager().getSavedBlockStates().contains(currentTrunkBlock.getState())) {
+        if (getPluginInstance().getManager().isNotTreeBlock(currentTrunkBlock) || getPluginInstance().getManager().getSavedBlockStates().contains(currentTrunkBlock.getState())
+                || getPluginInstance().doesNotPassHooksCheck(currentTrunkBlock.getLocation())) {
             takeActionOnBlock(currentTrunkBlock, getTreeRegenDelay());
             workAdjacents(currentTrunkBlock, getTreeRegenDelay());
             plantSapling();
@@ -92,7 +93,8 @@ public class TreePhysicsTask implements Runnable {
     private void workAdjacents(Block centerBlock, int counter) {
         for (BlockFace blockFace : shuffleBlockFaceList()) {
             Block adjacentBlock = centerBlock.getRelative(blockFace);
-            if (getPluginInstance().getManager().isNotTreeBlock(adjacentBlock) || getPluginInstance().getManager().getSavedBlockStates().contains(adjacentBlock.getState()))
+            if (getPluginInstance().getManager().isNotTreeBlock(adjacentBlock) || getPluginInstance().getManager().getSavedBlockStates().contains(adjacentBlock.getState())
+                    || getPluginInstance().doesNotPassHooksCheck(adjacentBlock.getLocation()))
                 continue;
 
             if (adjacentBlock.getType().name().contains("LOG")) {

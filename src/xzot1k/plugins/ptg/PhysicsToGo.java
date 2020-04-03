@@ -14,11 +14,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xzot1k.plugins.ptg.core.Commands;
 import xzot1k.plugins.ptg.core.Listeners;
 import xzot1k.plugins.ptg.core.Manager;
+import xzot1k.plugins.ptg.core.hooks.FactionsHook;
+import xzot1k.plugins.ptg.core.hooks.LandsHook;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
 
 import java.io.*;
@@ -35,6 +36,9 @@ public class PhysicsToGo extends JavaPlugin {
 
     private String serverVersion;
     private boolean particleAPI;
+
+    private FactionsHook factionsHook;
+    private LandsHook landsHook;
 
     private FileConfiguration advancedConfig, langConfig;
     private File advancedFile, langFile;
@@ -76,6 +80,10 @@ public class PhysicsToGo extends JavaPlugin {
             command.setExecutor(commands);
             command.setTabCompleter(commands);
         }
+
+        // setup hooks
+        setFactionsHook(new FactionsHook(this));
+        setLandsHook(new LandsHook(this));
 
         // registers the listeners class
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
@@ -120,26 +128,14 @@ public class PhysicsToGo extends JavaPlugin {
     // hook help
 
     /**
-     * Simply checks to see if the location is NOT in a claim from factions.
+     * Simply checks to see if the location is NOT in a protected region of a supported hook.
      *
      * @param location The location to check.
      * @return Whether the check passed or not.
      */
-    public boolean doesNotPassFactionClaimCheck(Location location) {
-        if (getPluginInstance().getConfig().getBoolean("block-in-factions")) return false;
-
-        Plugin factions = pluginInstance.getServer().getPluginManager().getPlugin("Factions");
-        if (factions != null)
-            if (!factions.getDescription().getDepend().contains("MassiveCore")) {
-                com.massivecraft.factions.FLocation fLocation = new com.massivecraft.factions.FLocation(location);
-                com.massivecraft.factions.Faction factionAtLocation = com.massivecraft.factions.Board.getInstance().getFactionAt(fLocation);
-                return factionAtLocation != null && !factionAtLocation.isWilderness();
-            } else {
-                com.massivecraft.factions.entity.Faction factionAtLocation = com.massivecraft.factions.entity.BoardColl.get().getFactionAt(com.massivecraft.massivecore.ps.PS.valueOf(location));
-                return factionAtLocation != null && !factionAtLocation.getId().equalsIgnoreCase(com.massivecraft.factions.entity.FactionColl.get().getNone().getId());
-            }
-
-        return false;
+    public boolean doesNotPassHooksCheck(Location location) {
+        return ((getPluginInstance().getConfig().getBoolean("block-in-factions") && getFactionsHook().isInFactionClaim(location))
+                || getLandsHook().getLandsIntegration().isClaimed(location));
     }
 
     // general helper methods
@@ -350,4 +346,19 @@ public class PhysicsToGo extends JavaPlugin {
         this.particleAPI = particleAPI;
     }
 
+    private FactionsHook getFactionsHook() {
+        return factionsHook;
+    }
+
+    private void setFactionsHook(FactionsHook factionsHook) {
+        this.factionsHook = factionsHook;
+    }
+
+    private LandsHook getLandsHook() {
+        return landsHook;
+    }
+
+    private void setLandsHook(LandsHook landsHook) {
+        this.landsHook = landsHook;
+    }
 }

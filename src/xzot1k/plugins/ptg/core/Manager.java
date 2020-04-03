@@ -191,6 +191,22 @@ public class Manager {
     }
 
     /**
+     * Checks to see if the passed material is a blocked regeneration material.
+     *
+     * @param material The material to check for.
+     * @return Whether it is blocked.
+     */
+    public boolean isBlockedRegenMaterial(Material material) {
+        List<String> effectedMaterials = getPluginInstance().getConfig().getStringList("blocked-material-regeneration");
+        if (effectedMaterials.isEmpty()) return true;
+
+        for (String materialName : effectedMaterials)
+            if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+                return true;
+        return false;
+    }
+
+    /**
      * Checks to see if the world is blocked.
      *
      * @return Whether the world is blocked or not.

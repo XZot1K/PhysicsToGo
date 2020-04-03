@@ -69,6 +69,8 @@
 # The "break-only-effected" list will act as a whitelist when the "break-regeneration" option is enabled. All materials in the list will regenerate after a
 # delay to their original material. (NOTE: This list will be avoided if it is empty.)
 #
+# The "blocked-material-regeneration" is a list that will prevent block regeneration entirely if its material is in the list.
+#
 # The "world-blacklist" list will block all PTG actions in the defined worlds.
 #
 # The "avoided-materials" list should contain all materials that should be avoided like the black plague. Essentially these materials
@@ -114,7 +116,11 @@ break-regeneration-delay: 20
 break-only-effected:
   - "ORE"
 
-world-blacklist: []
+blocked-material-regeneration:
+  - "FIRE"
+  - "TNT"
+world-blacklist:
+  - "blocked_world"
 avoided-materials:
   - "BEDROCK"
   - "OBSIDIAN"
