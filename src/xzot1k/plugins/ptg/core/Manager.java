@@ -172,7 +172,7 @@ public class Manager {
      */
     public boolean isBlockedExplosiveEntity(EntityType entityType) {
         for (String entityTypeName : getPluginInstance().getConfig().getStringList("explosive-blocked-entities"))
-            if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
+            if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
         return false;
     }
@@ -231,11 +231,16 @@ public class Manager {
                     ((block.getLocation().getZ() + 0.5) + getPluginInstance().getManager().getRandomInRange(-1, 1)), 10, block.getBlockData());
 
             Sound sound = Sound.BLOCK_METAL_BREAK;
-            if (block.getType().name().contains("LOG") || block.getType().name().contains("WOOD"))
+            if (block.getType().name().contains("LOG") || block.getType().name().contains("WOOD")
+                    || block.getType().name().contains("BARREL") || block.getType().name().contains("CHEST")
+                    || block.getType().name().contains("BENCH") || block.getType().name().contains("OAK")
+                    || block.getType().name().contains("BIRCH") || block.getType().name().contains("DARK_OAK")
+                    || block.getType().name().contains("ACACIA") || block.getType().name().contains("SPRUCE")
+                    || block.getType().name().contains("JUNGLE"))
                 sound = Sound.BLOCK_WOOD_BREAK;
             else if (block.getType().name().contains("GLASS"))
                 sound = Sound.BLOCK_GLASS_BREAK;
-            else if (block.getType().name().contains("STONE"))
+            else if (block.getType().name().contains("STONE") || block.getType().name().contains("FURNACE"))
                 sound = Sound.BLOCK_STONE_BREAK;
             else if (block.getType().name().contains("WET") && block.getType().name().contains("GRASS"))
                 sound = Sound.BLOCK_WET_GRASS_BREAK;
@@ -247,7 +252,7 @@ public class Manager {
                 sound = Sound.BLOCK_BAMBOO_BREAK;
             else if (block.getType().name().contains("CROP") || (block.getType().name().contains("SUGAR") && block.getType().name().contains("CANE"))
                     || block.getType().name().contains("CARROT") || block.getType().name().contains("POTATO") || block.getType().name().contains("BEET")
-                    || block.getType().name().contains("STEM") || block.getType().name().contains("SAPLING"))
+                    || block.getType().name().contains("STEM") || block.getType().name().contains("SAPLING") || block.getType().name().contains("LEAVES"))
 
                 sound = Sound.BLOCK_CROP_BREAK;
             else if (block.getType().name().contains("BERRY") && block.getType().name().contains("BUSH"))
@@ -293,15 +298,21 @@ public class Manager {
                     ((block.getLocation().getZ() + 0.5) + getPluginInstance().getManager().getRandomInRange(-1, 1)), 10, block.getBlockData());
 
             Sound sound = Sound.BLOCK_METAL_PLACE;
-            if (block.getType().name().contains("LOG") || block.getType().name().contains("WOOD"))
+            if (block.getType().name().contains("LOG") || block.getType().name().contains("WOOD")
+                    || block.getType().name().contains("BARREL") || block.getType().name().contains("CHEST")
+                    || block.getType().name().contains("BENCH") || block.getType().name().contains("OAK")
+                    || block.getType().name().contains("BIRCH") || block.getType().name().contains("DARK_OAK")
+                    || block.getType().name().contains("ACACIA") || block.getType().name().contains("SPRUCE")
+                    || block.getType().name().contains("JUNGLE"))
                 sound = Sound.BLOCK_WOOD_PLACE;
             else if (block.getType().name().contains("GLASS"))
                 sound = Sound.BLOCK_GLASS_PLACE;
-            else if (block.getType().name().contains("STONE"))
+            else if (block.getType().name().contains("STONE") || block.getType().name().contains("FURNACE"))
                 sound = Sound.BLOCK_STONE_PLACE;
             else if (block.getType().name().contains("WET") && block.getType().name().contains("GRASS"))
                 sound = Sound.BLOCK_WET_GRASS_PLACE;
-            else if (block.getType().name().contains("GRASS"))
+            else if (block.getType().name().contains("GRASS") || block.getType().name().contains("DIRT")
+                    || block.getType().name().contains("LEAVES"))
                 sound = Sound.BLOCK_GRASS_PLACE;
             else if (block.getType().name().contains("WOOL"))
                 sound = Sound.BLOCK_WOOL_PLACE;

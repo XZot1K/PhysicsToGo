@@ -20,6 +20,7 @@ import xzot1k.plugins.ptg.core.Commands;
 import xzot1k.plugins.ptg.core.Listeners;
 import xzot1k.plugins.ptg.core.Manager;
 import xzot1k.plugins.ptg.core.hooks.FactionsHook;
+import xzot1k.plugins.ptg.core.hooks.FeudalHook;
 import xzot1k.plugins.ptg.core.hooks.LandsHook;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
 
@@ -40,6 +41,7 @@ public class PhysicsToGo extends JavaPlugin {
 
     private FactionsHook factionsHook;
     private LandsHook landsHook;
+    private FeudalHook feudalHook;
 
     private FileConfiguration advancedConfig, langConfig;
     private File advancedFile, langFile;
@@ -83,12 +85,15 @@ public class PhysicsToGo extends JavaPlugin {
         }
 
         // setup hooks
-        Plugin factions = getServer().getPluginManager().getPlugin("Factions");
+        Plugin factions = getServer().getPluginManager().getPlugin("Factions"),
+                feudal = getServer().getPluginManager().getPlugin("Feudal");
         if (factions != null)
             setFactionsHook(new FactionsHook(this, factions));
 
         if (getServer().getPluginManager().getPlugin("Lands") != null)
             setLandsHook(new LandsHook(this));
+
+        if (feudal != null) setFeudalHook(new FeudalHook(feudal));
 
         // registers the listeners class
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
@@ -139,8 +144,10 @@ public class PhysicsToGo extends JavaPlugin {
      * @return Whether the check passed or not.
      */
     public boolean doesNotPassHooksCheck(Location location) {
-        return ((getPluginInstance().getConfig().getBoolean("block-in-factions") && getFactionsHook().isInFactionClaim(location))
-                || (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)));
+        final boolean blockInClaims = getPluginInstance().getConfig().getBoolean("block-in-claims");
+        return ((blockInClaims && getFactionsHook().isInFactionClaim(location))
+                || (blockInClaims && (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)))
+                || (blockInClaims && (getFeudalHook() != null && getFeudalHook().getFeudalAPI().getKingdom(location) != null)));
     }
 
     // general helper methods
@@ -365,5 +372,13 @@ public class PhysicsToGo extends JavaPlugin {
 
     private void setLandsHook(LandsHook landsHook) {
         this.landsHook = landsHook;
+    }
+
+    public FeudalHook getFeudalHook() {
+        return feudalHook;
+    }
+
+    private void setFeudalHook(FeudalHook feudalHook) {
+        this.feudalHook = feudalHook;
     }
 }

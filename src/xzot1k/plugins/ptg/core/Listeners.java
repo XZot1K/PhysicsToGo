@@ -103,8 +103,7 @@ public class Listeners implements Listener {
 
         if (getPluginInstance().getConfig().getBoolean("place-removal")) {
             final BlockState blockState = e.getBlockReplacedState();
-
-            if (checkPlaceState(e, blockState)) return;
+            if (checkState(blockState, ActionType.PLACE)) return;
 
             if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType()))
                 return;
@@ -134,7 +133,7 @@ public class Listeners implements Listener {
 
                 final BlockState blockState = e.getBlock().getState();
                 final boolean drops = getPluginInstance().getConfig().getBoolean("tree-drops"), treeRegeneration = getPluginInstance().getConfig().getBoolean("tree-regeneration");
-                if (checkBreakState(e, blockState, ActionType.TREE_BREAK)) return;
+                if (checkState(blockState, ActionType.TREE_BREAK)) return;
 
                 e.setCancelled(true);
                 TreePhysicsTask treePhysicsTask = new TreePhysicsTask(getPluginInstance(), e.getPlayer(), blockState, drops, treeRegeneration);
@@ -145,7 +144,7 @@ public class Listeners implements Listener {
 
         if (getPluginInstance().getConfig().getBoolean("break-regeneration")) {
             final BlockState blockState = e.getBlock().getState();
-            if (checkBreakState(e, blockState, ActionType.BREAK)) return;
+            if (checkState(blockState, ActionType.BREAK)) return;
 
             if (!getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType()))
                 return;
@@ -190,7 +189,7 @@ public class Listeners implements Listener {
             if (block == null || getPluginInstance().doesNotPassHooksCheck(block.getLocation())) continue;
 
             final BlockState blockState = block.getState();
-            if (checkExplosiveState(e, blockState)) continue;
+            if (checkState(blockState, ActionType.EXPLOSIVE)) continue;
 
             if (getPluginInstance().getManager().isAvoidedMaterial(block.getType())) {
                 e.blockList().remove(block);
@@ -211,6 +210,9 @@ public class Listeners implements Listener {
                 getPluginInstance().getManager().createFallingBlock(block, blockState, true, false);
 
             if (!explosiveDrops) {
+                if (block.getState() instanceof InventoryHolder)
+                    ((InventoryHolder) block.getState()).getInventory().clear();
+
                 e.setYield(0);
                 block.setType(Material.AIR);
             }
@@ -241,38 +243,21 @@ public class Listeners implements Listener {
     }
 
     // helper methods
-    private boolean checkPlaceState(BlockPlaceEvent e, BlockState blockState) {
-        for (BlockState bs : getPluginInstance().getManager().getSavedBlockStates())
-            if (bs == blockState) {
-                e.setCancelled(true);
-                return true;
-            }
-
-        PhysicsActionEvent actionEvent = new PhysicsActionEvent(getPluginInstance(), blockState, ActionType.PLACE);
-        getPluginInstance().getServer().getPluginManager().callEvent(actionEvent);
-        return actionEvent.isCancelled();
+    private boolean isSame(BlockState blockStateOne, BlockState blockStateTwo) {
+        return (blockStateOne.getWorld().getName().equals(blockStateTwo.getWorld().getName())
+                && blockStateOne.getX() == blockStateTwo.getX() && blockStateOne.getY() == blockStateTwo.getY()
+                && blockStateOne.getZ() == blockStateTwo.getZ());
     }
 
-    private boolean checkBreakState(BlockBreakEvent e, BlockState blockState, ActionType actionType) {
+    private boolean checkState(BlockState blockState, ActionType actionType) {
+        final boolean stateOverride = getPluginInstance().getConfig().getBoolean("state-override");
         for (BlockState bs : getPluginInstance().getManager().getSavedBlockStates())
-            if (bs == blockState) {
-                e.setCancelled(true);
-                return true;
+            if (isSame(blockState, bs)) {
+                if (!stateOverride) return false;
+                else break;
             }
 
         PhysicsActionEvent actionEvent = new PhysicsActionEvent(getPluginInstance(), blockState, actionType);
-        getPluginInstance().getServer().getPluginManager().callEvent(actionEvent);
-        return actionEvent.isCancelled();
-    }
-
-    private boolean checkExplosiveState(EntityExplodeEvent e, BlockState blockState) {
-        for (BlockState bs : getPluginInstance().getManager().getSavedBlockStates())
-            if (bs == blockState) {
-                e.setCancelled(true);
-                return true;
-            }
-
-        PhysicsActionEvent actionEvent = new PhysicsActionEvent(getPluginInstance(), blockState, ActionType.EXPLOSIVE);
         getPluginInstance().getServer().getPluginManager().callEvent(actionEvent);
         return actionEvent.isCancelled();
     }

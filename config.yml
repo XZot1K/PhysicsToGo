@@ -4,7 +4,7 @@
 # YOU CAN GENERALIZE LIST VALUES. FOR EXAMPLE, ENTERING "MINECART" IN AN ENTITY BLOCK LIST WILL BLOCK ALL ENTITIES THAT CONTAIN THE WORD "MINECART"
 # IN THEIR ENTITY TYPE NAME.
 #
-# The "block-in-factions" option is an extra step which will not perform any PTG tasks in Faction claims under any circumstance.
+# The "block-in-claims" option is an extra step which will not perform any PTG tasks in supported claims found from other plugins under any circumstance.
 #
 # The "state-override" option determines if actions such as explosives, placing, or break of existing locations where regeneration effects are scheduled will be allowed to merge.
 # (For Example: When a player breaks a block and it is scheduled to regenerate, this will allow them to place block at that same location etc.)
@@ -77,7 +77,7 @@
 # are safe from the plugins actions at all costs.
 #
 
-block-in-factions: false
+block-in-claims: false
 state-override: false
 block-forming: false
 container-restoration: true
