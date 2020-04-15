@@ -4,15 +4,15 @@
 
 package xzot1k.plugins.ptg.core.hooks;
 
-import org.bukkit.plugin.Plugin;
+import de.browniecodez.feudal.main.Main;
 import us.forseth11.feudal.api.FeudalAPI;
 
 public class FeudalHook {
 
     private FeudalAPI feudalAPI;
 
-    public FeudalHook(Plugin feudal) {
-        setFeudalAPI((FeudalAPI) feudal);
+    public FeudalHook() {
+        setFeudalAPI(Main.getAPI());
     }
 
     public FeudalAPI getFeudalAPI() {

@@ -1,10 +1,10 @@
 name: PhysicsToGo
-version: 2.0.4
+version: 2.0.4-B
 api-version: 1.13
 main: xzot1k.plugins.ptg.PhysicsToGo
 author: XZot1K
 description: PhysicsToGo is a lightweight physics & environmental regeneration plugin.
-softdepend: [Factions, MassiveCore, Lands]
+softdepend: [Factions, MassiveCore, Lands, Feudal]
 commands:
 
   physicstogo:

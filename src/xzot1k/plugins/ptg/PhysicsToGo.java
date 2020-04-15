@@ -93,7 +93,7 @@ public class PhysicsToGo extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("Lands") != null)
             setLandsHook(new LandsHook(this));
 
-        if (feudal != null) setFeudalHook(new FeudalHook(feudal));
+        if (feudal != null) setFeudalHook(new FeudalHook());
 
         // registers the listeners class
         getServer().getPluginManager().registerEvents(new Listeners(this), this);
