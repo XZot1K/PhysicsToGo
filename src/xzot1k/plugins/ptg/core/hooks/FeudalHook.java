@@ -4,15 +4,16 @@
 
 package xzot1k.plugins.ptg.core.hooks;
 
-import de.browniecodez.feudal.main.Main;
-import us.forseth11.feudal.api.FeudalAPI;
+
+import me.invertmc.feudal.api.FeudalAPI;
+import me.invertmc.feudal.core.Feudal;
 
 public class FeudalHook {
 
     private FeudalAPI feudalAPI;
 
     public FeudalHook() {
-        setFeudalAPI(Main.getAPI());
+        setFeudalAPI(Feudal.getAPI());
     }
 
     public FeudalAPI getFeudalAPI() {
