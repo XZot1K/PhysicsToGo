@@ -15,7 +15,7 @@ import java.util.logging.Level;
 public class Main extends JavaPlugin
 {
 
-    private satic PhysicsToGo physicsToGo;
+    private static PhysicsToGo physicsToGo;
 
     @Override
     public void onEnable()
