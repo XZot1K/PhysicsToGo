@@ -145,7 +145,7 @@ public class PhysicsToGo extends JavaPlugin {
      */
     public boolean doesNotPassHooksCheck(Location location) {
         final boolean blockInClaims = getPluginInstance().getConfig().getBoolean("block-in-claims");
-        return ((blockInClaims && getFactionsHook().isInFactionClaim(location))
+        return ((blockInClaims && (getFactionsHook() != null && getFactionsHook().isInFactionClaim(location)))
                 || (blockInClaims && (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)))
                 || (blockInClaims && (getFeudalHook() != null && getFeudalHook().getFeudalAPI().getKingdom(location) != null)));
     }

@@ -105,7 +105,8 @@ public class Listeners implements Listener {
             final BlockState blockState = e.getBlockReplacedState();
             if (checkState(blockState, ActionType.PLACE)) return;
 
-            if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType()))
+            if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType())
+                    || getPluginInstance().getManager().isAvoidedMaterial(e.getBlock().getType()))
                 return;
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
@@ -146,7 +147,7 @@ public class Listeners implements Listener {
             final BlockState blockState = e.getBlock().getState();
             if (checkState(blockState, ActionType.BREAK)) return;
 
-            if (!getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType()))
+            if (!getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType()) || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType()))
                 return;
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
