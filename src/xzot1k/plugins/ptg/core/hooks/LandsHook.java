@@ -12,7 +12,7 @@ public class LandsHook {
     private LandsIntegration landsIntegration;
 
     public LandsHook(PhysicsToGo pluginInstance) {
-        setLandsIntegration(new LandsIntegration(pluginInstance, false));
+        setLandsIntegration(new LandsIntegration(pluginInstance));
     }
 
     public LandsIntegration getLandsIntegration() {

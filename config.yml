@@ -69,7 +69,11 @@
 # The "break-only-effected" list will act as a whitelist when the "break-regeneration" option is enabled. All materials in the list will regenerate after a
 # delay to their original material. (NOTE: This list will be avoided if it is empty.)
 #
+# The "invert-bmr" option will convert the "blocked-material-regeneration" into a whitelist from a blacklist.
+#
 # The "blocked-material-regeneration" is a list that will prevent block regeneration entirely if its material is in the list.
+#
+# The "invert-wb" option will convert the world-blacklist into a whitelist.
 #
 # The "world-blacklist" list will block all PTG actions in the defined worlds.
 #
@@ -118,9 +122,12 @@ break-regeneration-delay: 20
 break-only-effected:
   - "ORE"
 
+invert-bmr: false
 blocked-material-regeneration:
   - "FIRE"
   - "TNT"
+
+invert-wb: false
 world-blacklist:
   - "blocked_world"
 avoided-materials:

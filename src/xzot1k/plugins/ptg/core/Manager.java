@@ -126,9 +126,14 @@ public class Manager {
      * @return If it is a material to avoid.
      */
     public boolean isAvoidedMaterial(Material material) {
-        for (String materialName : getPluginInstance().getConfig().getStringList("avoided-materials"))
-            if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+        List<String> materialNames = getPluginInstance().getConfig().getStringList("avoided-materials");
+        if (materialNames.isEmpty()) return false;
+
+        for (int i = -1; ++i < materialNames.size(); ) {
+            String materialName = materialNames.get(i);
+            if (materialName != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -142,9 +147,11 @@ public class Manager {
         List<String> effectedMaterials = getPluginInstance().getConfig().getStringList("place-only-effected");
         if (effectedMaterials.isEmpty()) return true;
 
-        for (String materialName : effectedMaterials)
-            if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+        for (int i = -1; ++i < effectedMaterials.size(); ) {
+            String materialName = effectedMaterials.get(i);
+            if (material != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -158,9 +165,11 @@ public class Manager {
         List<String> effectedMaterials = getPluginInstance().getConfig().getStringList("break-only-effected");
         if (effectedMaterials.isEmpty()) return true;
 
-        for (String materialName : effectedMaterials)
-            if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+        for (int i = -1; ++i < effectedMaterials.size(); ) {
+            String materialName = effectedMaterials.get(i);
+            if (material != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -171,9 +180,14 @@ public class Manager {
      * @return Whether it can take the damage or not.
      */
     public boolean isBlockedExplosiveEntity(EntityType entityType) {
-        for (String entityTypeName : getPluginInstance().getConfig().getStringList("explosive-blocked-entities"))
-            if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
+        List<String> blockedEntities = getPluginInstance().getConfig().getStringList("explosive-blocked-entities");
+        if (blockedEntities.isEmpty()) return false;
+
+        for (int i = -1; ++i < blockedEntities.size(); ) {
+            String entityTypeName = blockedEntities.get(i);
+            if (entityTypeName != null && entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -184,9 +198,14 @@ public class Manager {
      * @return Whether it can regenerate blocks or not.
      */
     public boolean isBlockedExplosiveRegenEntity(EntityType entityType) {
-        for (String entityTypeName : getPluginInstance().getConfig().getStringList("blocked-entity-regeneration"))
-            if (entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("_", "-")))
+        List<String> blockedEntities = getPluginInstance().getConfig().getStringList("blocked-entity-regeneration");
+        if (blockedEntities.isEmpty()) return false;
+
+        for (int i = -1; ++i < blockedEntities.size(); ) {
+            String entityTypeName = blockedEntities.get(i);
+            if (entityTypeName != null && entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -198,11 +217,13 @@ public class Manager {
      */
     public boolean isBlockedRegenMaterial(Material material) {
         List<String> effectedMaterials = getPluginInstance().getConfig().getStringList("blocked-material-regeneration");
-        if (effectedMaterials.isEmpty()) return true;
+        if (effectedMaterials.isEmpty()) return false;
 
-        for (String materialName : effectedMaterials)
-            if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+        for (int i = -1; ++i < effectedMaterials.size(); ) {
+            String materialName = effectedMaterials.get(i);
+            if (materialName != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
+        }
         return false;
     }
 
@@ -213,9 +234,14 @@ public class Manager {
      */
     public boolean isBlockedWorld(World world) {
         if (world == null) return false;
-        for (String worldName : getPluginInstance().getConfig().getStringList("world-blacklist"))
-            if (world.getName().equalsIgnoreCase(worldName))
+        List<String> worldBlacklist = getPluginInstance().getConfig().getStringList("world-blacklist");
+        if (worldBlacklist.isEmpty()) return false;
+
+        for (int i = -1; ++i < worldBlacklist.size(); ) {
+            String worldName = worldBlacklist.get(i);
+            if (worldName != null && world.getName().equalsIgnoreCase(worldName))
                 return true;
+        }
         return false;
     }
 

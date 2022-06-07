@@ -19,15 +19,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xzot1k.plugins.ptg.core.Commands;
 import xzot1k.plugins.ptg.core.Listeners;
 import xzot1k.plugins.ptg.core.Manager;
-import xzot1k.plugins.ptg.core.hooks.FactionsHook;
-import xzot1k.plugins.ptg.core.hooks.FeudalHook;
-import xzot1k.plugins.ptg.core.hooks.LandsHook;
+import xzot1k.plugins.ptg.core.hooks.*;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
 
 import java.io.*;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -42,6 +41,8 @@ public class PhysicsToGo extends JavaPlugin {
     private FactionsHook factionsHook;
     private LandsHook landsHook;
     private FeudalHook feudalHook;
+    private WorldGuardHook worldGuardHook;
+    private CoreProtectHook coreProtectHook;
 
     private FileConfiguration advancedConfig, langConfig;
     private File advancedFile, langFile;
@@ -50,54 +51,13 @@ public class PhysicsToGo extends JavaPlugin {
         return pluginInstance;
     }
 
-    private static void setPluginInstance(PhysicsToGo pluginInstance) {
-        PhysicsToGo.pluginInstance = pluginInstance;
-    }
-
     @Override
-    public void onEnable() {
-        setPluginInstance(this);
-
-        saveDefaultConfigs();
-        updateConfigs();
-
-        // very simply loop that runs once to see if current server version World class has the new particle API.
-        setParticleAPI(false);
-        for (Method method : World.class.getMethods()) {
-            if (method.getName().contains("spawnParticle")) {
-                setParticleAPI(true);
-                break;
-            }
-        }
-
-        // identifies and initializes the server's version.
-        setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
-
-        // creates and registers a new instance of the Manager class.
-        setManager(new Manager(this));
-
-        // registers the command class and sets up the tab completion.
-        PluginCommand command = getCommand("physicstogo");
-        if (command != null) {
-            Commands commands = new Commands(this);
-            command.setExecutor(commands);
-            command.setTabCompleter(commands);
-        }
-
-        // setup hooks
-        Plugin factions = getServer().getPluginManager().getPlugin("Factions"),
-                feudal = getServer().getPluginManager().getPlugin("Feudal");
-        if (factions != null)
-            setFactionsHook(new FactionsHook(this, factions));
-
-        if (getServer().getPluginManager().getPlugin("Lands") != null)
-            setLandsHook(new LandsHook(this));
-
-        if (feudal != null) setFeudalHook(new FeudalHook());
-
-        // registers the listeners class
-        getServer().getPluginManager().registerEvents(new Listeners(this), this);
-
+    public void onLoad() {
+        // Wrapped in try/catch to bypass an issue involving world guard custom flag registration when re-loaded live.
+        try {
+            Plugin worldGuard = getServer().getPluginManager().getPlugin("WorldGuard");
+            if (worldGuard != null) worldGuardHook = new WorldGuardHook();
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -137,6 +97,49 @@ public class PhysicsToGo extends JavaPlugin {
 
     // hook help
 
+    @Override
+    public void onEnable() {
+        pluginInstance = this;
+
+        saveDefaultConfigs();
+        updateConfigs();
+
+        // very simply loop that runs once to see if current server version World class has the new particle API.
+        setParticleAPI(false);
+        for (Method method : World.class.getMethods()) {
+            if (method.getName().contains("spawnParticle")) {
+                setParticleAPI(true);
+                break;
+            }
+        }
+
+        // identifies and initializes the server's version.
+        setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
+
+        // creates and registers a new instance of the Manager class.
+        setManager(new Manager(this));
+
+        // registers the command class and sets up the tab completion.
+        PluginCommand command = getCommand("physicstogo");
+        if (command != null) {
+            Commands commands = new Commands(this);
+            command.setExecutor(commands);
+            command.setTabCompleter(commands);
+        }
+
+        // setup hooks
+        final Plugin factions = getServer().getPluginManager().getPlugin("Factions"), feudal = getServer().getPluginManager().getPlugin("Feudal");
+        if (factions != null) setFactionsHook(new FactionsHook(this, factions));
+        if (getServer().getPluginManager().getPlugin("Lands") != null) setLandsHook(new LandsHook(this));
+        if (feudal != null) setFeudalHook(new FeudalHook());
+        if (getServer().getPluginManager().getPlugin("CoreProtect") != null)
+            coreProtectHook = new CoreProtectHook(this);
+
+        // registers the listeners class
+        getServer().getPluginManager().registerEvents(new Listeners(this), this);
+
+    }
+
     /**
      * Simply checks to see if the location is NOT in a protected region of a supported hook.
      *
@@ -144,10 +147,11 @@ public class PhysicsToGo extends JavaPlugin {
      * @return Whether the check passed or not.
      */
     public boolean doesNotPassHooksCheck(Location location) {
-        final boolean blockInClaims = getPluginInstance().getConfig().getBoolean("block-in-claims");
+        final boolean blockInClaims = getConfig().getBoolean("block-in-claims");
         return ((blockInClaims && (getFactionsHook() != null && getFactionsHook().isInFactionClaim(location)))
                 || (blockInClaims && (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)))
-                || (blockInClaims && (getFeudalHook() != null && getFeudalHook().getFeudalAPI().getKingdom(location) != null)));
+                || (blockInClaims && (getFeudalHook() != null && getFeudalHook().getFeudalAPI().getKingdom(location) != null))
+                || (blockInClaims && (getWorldGuardHook() != null && getWorldGuardHook().passedWorldGuardHook(location))));
     }
 
     // general helper methods
@@ -155,52 +159,7 @@ public class PhysicsToGo extends JavaPlugin {
      * Sends a formatted message with a logging level to the console.
      */
     public void log(Level level, String message) {
-        getPluginInstance().getServer().getLogger().log(level, "[" + getPluginInstance().getDescription().getName() + "] " + message);
-    }
-
-    private void updateConfigs() {
-        long startTime = System.currentTimeMillis();
-        int totalUpdates = 0;
-
-        final String[] configNames = {"config", "advanced", "lang"};
-        for (int i = -1; ++i < configNames.length; ) {
-            String name = configNames[i];
-
-            InputStream inputStream = getClass().getResourceAsStream("/" + name + ".yml");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            FileConfiguration yaml = YamlConfiguration.loadConfiguration(reader);
-            int updateCount = updateKeys(yaml, name.equalsIgnoreCase("lang") ? getLangConfig() : name.equalsIgnoreCase("config") ? getConfig() : getAdvancedConfig());
-
-            try {
-                inputStream.close();
-                reader.close();
-            } catch (IOException e) {
-                log(Level.WARNING, e.getMessage());
-            }
-
-            if (updateCount > 0) {
-                switch (name) {
-                    case "config":
-                        saveConfig();
-                        break;
-                    case "advanced":
-                        saveAdvancedConfig();
-                        break;
-                    case "lang":
-                        saveLangConfig();
-                        break;
-                    default:
-                        break;
-                }
-
-                totalUpdates += updateCount;
-            }
-        }
-
-        final boolean wasUpdated = (totalUpdates > 0);
-        if (wasUpdated) reloadConfigs();
-        log(Level.INFO, (wasUpdated ? (totalUpdates + " thing(s) were fixed, updated, or removed from all the configuration together.")
-                : "Everything inside the configuration seems to be up to date. (Took ") + (System.currentTimeMillis() - startTime) + "ms)");
+        getServer().getLogger().log(level, "[" + getPluginInstance().getDescription().getName() + "] " + message);
     }
 
     private int updateKeys(FileConfiguration jarYaml, FileConfiguration currentYaml) {
@@ -329,6 +288,8 @@ public class PhysicsToGo extends JavaPlugin {
         }
     }
 
+    // getters & setters
+
     /**
      * Obtains the manager class containing all important methods and API functions.
      *
@@ -380,5 +341,58 @@ public class PhysicsToGo extends JavaPlugin {
 
     private void setFeudalHook(FeudalHook feudalHook) {
         this.feudalHook = feudalHook;
+    }
+
+    private void updateConfigs() {
+        long startTime = System.currentTimeMillis();
+        int totalUpdates = 0;
+
+        final String[] configNames = {"config", "advanced", "lang"};
+        for (int i = -1; ++i < configNames.length; ) {
+            String name = configNames[i];
+
+            InputStream inputStream = getClass().getResourceAsStream("/" + name + ".yml");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
+            FileConfiguration yaml = YamlConfiguration.loadConfiguration(reader);
+            int updateCount = updateKeys(yaml, name.equalsIgnoreCase("lang") ? getLangConfig() : name.equalsIgnoreCase("config") ? getConfig() : getAdvancedConfig());
+
+            try {
+                inputStream.close();
+                reader.close();
+            } catch (IOException e) {
+                log(Level.WARNING, e.getMessage());
+            }
+
+            if (updateCount > 0) {
+                switch (name) {
+                    case "config":
+                        saveConfig();
+                        break;
+                    case "advanced":
+                        saveAdvancedConfig();
+                        break;
+                    case "lang":
+                        saveLangConfig();
+                        break;
+                    default:
+                        break;
+                }
+
+                totalUpdates += updateCount;
+            }
+        }
+
+        final boolean wasUpdated = (totalUpdates > 0);
+        if (wasUpdated) reloadConfigs();
+        log(Level.INFO, (wasUpdated ? (totalUpdates + " thing(s) were fixed, updated, or removed from all the configuration together.")
+                : "Everything inside the configuration seems to be up to date. (Took ") + (System.currentTimeMillis() - startTime) + "ms)");
+    }
+
+    public WorldGuardHook getWorldGuardHook() {
+        return worldGuardHook;
+    }
+
+    public CoreProtectHook getCoreProtectHook() {
+        return coreProtectHook;
     }
 }

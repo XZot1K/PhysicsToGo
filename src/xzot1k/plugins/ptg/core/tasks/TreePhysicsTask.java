@@ -37,7 +37,8 @@ public class TreePhysicsTask implements Runnable {
         setTreeRegenDelay(getPluginInstance().getConfig().getInt("tree-regeneration-delay"));
         setAnimation(getPluginInstance().getConfig().getBoolean("tree-animation"));
         setGravity(getPluginInstance().getConfig().getBoolean("tree-gravity-effect"));
-        setBlockFaces(new BlockFace[]{BlockFace.NORTH, BlockFace.NORTH_WEST, BlockFace.NORTH_EAST, BlockFace.WEST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.SOUTH});
+        setBlockFaces(new BlockFace[]{BlockFace.NORTH, BlockFace.NORTH_WEST, BlockFace.NORTH_EAST, BlockFace.WEST,
+                BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST, BlockFace.SOUTH});
         setCanDrop(drops);
         setCanRegenerate(regeneration);
         setPlayer(player);
@@ -67,8 +68,10 @@ public class TreePhysicsTask implements Runnable {
     private void plantSapling() {
         if (!canRegenerate() && getPluginInstance().getConfig().getBoolean("tree-replant")) {
 
-            if (!getInitialBlockState().getBlock().getType().name().contains("AIR") || !(getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("DIRT")
-                    || getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("GRASS") || getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("NYLIUM")))
+            if (!getInitialBlockState().getBlock().getType().name().contains("AIR")
+                    || !(getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("DIRT")
+                    || getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("GRASS")
+                    || getInitialBlockState().getBlock().getRelative(BlockFace.DOWN).getType().name().contains("NYLIUM")))
                 return;
 
             SaplingData saplingData = getPluginInstance().getManager().getReplantSapling(getLogMaterial());
@@ -81,7 +84,8 @@ public class TreePhysicsTask implements Runnable {
                         dataMethod.invoke(getInitialBlockState().getBlock().getClass(), saplingData.getDataValue());
                     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                         e.printStackTrace();
-                        getPluginInstance().log(Level.WARNING, "Unable to set block data due to the 'setData' method not being found (If needed, send the developer the error above).");
+                        getPluginInstance().log(Level.WARNING, "Unable to set block data due to the 'setData' "
+                                + "method not being found (If needed, send the developer the error above).");
                     }
 
                     getPluginInstance().getManager().playNaturalBlockPlaceEffect(getInitialBlockState().getBlock());
@@ -120,6 +124,7 @@ public class TreePhysicsTask implements Runnable {
     }
 
     private void takeActionOnBlock(Block block, int delay) {
+        getPluginInstance().getCoreProtectHook().logLocation(block.getLocation()); // log to core protect.
         final BlockState blockState = block.getState();
         if (canRegenerate()) getPluginInstance().getManager().getSavedBlockStates().add(blockState);
 
