@@ -45,8 +45,8 @@ public class Listeners implements Listener {
             if (getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
 
             final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-            if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                    || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+            if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                    || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
                 if (blockState.getWorld().getName().equals(e.getBlock().getWorld().getName()) && blockState.getLocation().distance(e.getBlock().getLocation()) < 5) {
@@ -62,8 +62,8 @@ public class Listeners implements Listener {
             if (getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
 
             final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-            if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                    || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+            if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                    || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
                 if (blockState.getWorld().getName().equals(e.getSourceBlock().getWorld().getName()) && blockState.getLocation().distance(e.getSourceBlock().getLocation()) < 5) {
@@ -75,15 +75,17 @@ public class Listeners implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onFlow(BlockFromToEvent e) {
-        if ((e.getBlock().getType().name().contains("WATER") || e.getBlock().getType().name().contains("LAVA")) && getPluginInstance().getAdvancedConfig().getBoolean("cancel-flow-radius")) {
+        if ((e.getBlock().getType().name().contains("WATER") || e.getBlock().getType().name().contains("LAVA"))
+                && getPluginInstance().getAdvancedConfig().getBoolean("cancel-flow-radius")) {
             if (getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
 
             final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-            if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                    || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+            if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                    || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
             for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
-                if (blockState.getWorld().getName().equals(e.getToBlock().getWorld().getName()) && blockState.getLocation().distance(e.getToBlock().getLocation()) < 5) {
+                if (blockState.getWorld().getName().equals(e.getToBlock().getWorld().getName())
+                        && blockState.getLocation().distance(e.getToBlock().getLocation()) < 5) {
                     e.setCancelled(true);
                     break;
                 }
@@ -96,8 +98,8 @@ public class Listeners implements Listener {
             return;
 
         final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-        if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+        if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
         if (e.getEntity().getType() == EntityType.FALLING_BLOCK && (e.getEntity().getCustomName() != null
                 && e.getEntity().getCustomName().toUpperCase().contains("PTG_FALLING_BLOCK"))
@@ -116,8 +118,8 @@ public class Listeners implements Listener {
         if (e.isCancelled() || getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
 
         final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-        if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+        if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
         if (getPluginInstance().getConfig().getBoolean("place-removal")) {
             final BlockState blockState = e.getBlockReplacedState();
@@ -127,7 +129,8 @@ public class Listeners implements Listener {
                     || getPluginInstance().getManager().isAvoidedMaterial(e.getBlock().getType()))
                 return;
 
-            getPluginInstance().getCoreProtectHook().logLocation(e.getBlockReplacedState().getLocation()); // log to core protect.
+            if (getPluginInstance().getCoreProtectHook() != null)
+                getPluginInstance().getCoreProtectHook().logLocation(e.getBlockReplacedState().getLocation()); // log to core protect.
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
             getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
                     new BlockRegenerationTask(getPluginInstance(), e.getBlockReplacedState().getBlock(), blockState, true),
@@ -140,8 +143,8 @@ public class Listeners implements Listener {
         if (e.isCancelled() || getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
 
         final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-        if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
-                || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+        if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
         boolean skipToBreakAction = false;
         if (e.getBlock().getType().name().contains("LOG") && getPluginInstance().getConfig().getBoolean("tree-physics")) {
@@ -161,7 +164,8 @@ public class Listeners implements Listener {
 
                 e.setCancelled(true);
                 TreePhysicsTask treePhysicsTask = new TreePhysicsTask(getPluginInstance(), e.getPlayer(), blockState, drops, treeRegeneration);
-                treePhysicsTask.setTaskId(getPluginInstance().getServer().getScheduler().runTaskTimer(getPluginInstance(), treePhysicsTask, 0, getPluginInstance().getConfig().getInt("tree-regeneration-speed")).getTaskId());
+                treePhysicsTask.setTaskId(getPluginInstance().getServer().getScheduler().runTaskTimer(getPluginInstance(), treePhysicsTask, 0, getPluginInstance().getConfig().getInt("tree-regeneration" +
+                        "-speed")).getTaskId());
                 return;
             }
         }
@@ -173,7 +177,8 @@ public class Listeners implements Listener {
             if (!getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType()) || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType()))
                 return;
 
-            getPluginInstance().getCoreProtectHook().logLocation(blockState.getLocation());
+            if (getPluginInstance().getCoreProtectHook() != null)
+                getPluginInstance().getCoreProtectHook().logLocation(blockState.getLocation());
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
             if (!getPluginInstance().getConfig().getBoolean("break-drops")) {
                 e.setCancelled(true);
@@ -280,8 +285,8 @@ public class Listeners implements Listener {
         if (e.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION && getPluginInstance().getManager().isBlockedExplosiveEntity(e.getEntity().getType())) {
 
             final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
-            if ((!invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getEntity().getWorld()))
-                    || (invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getEntity().getWorld()))) return;
+            if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getEntity().getWorld()))
+                    || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getEntity().getWorld()))) return;
 
             if (getPluginInstance().doesNotPassHooksCheck(e.getEntity().getLocation())) return;
             e.setCancelled(true);

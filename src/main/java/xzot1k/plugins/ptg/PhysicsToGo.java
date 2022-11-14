@@ -19,7 +19,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import xzot1k.plugins.ptg.core.Commands;
 import xzot1k.plugins.ptg.core.Listeners;
 import xzot1k.plugins.ptg.core.Manager;
-import xzot1k.plugins.ptg.core.hooks.*;
+import xzot1k.plugins.ptg.core.hooks.CoreProtectHook;
+import xzot1k.plugins.ptg.core.hooks.FactionsHook;
+import xzot1k.plugins.ptg.core.hooks.LandsHook;
+import xzot1k.plugins.ptg.core.hooks.WorldGuardHook;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
 
 import java.io.*;
@@ -40,7 +43,6 @@ public class PhysicsToGo extends JavaPlugin {
 
     private FactionsHook factionsHook;
     private LandsHook landsHook;
-    private FeudalHook feudalHook;
     private WorldGuardHook worldGuardHook;
     private CoreProtectHook coreProtectHook;
 
@@ -128,10 +130,9 @@ public class PhysicsToGo extends JavaPlugin {
         }
 
         // setup hooks
-        final Plugin factions = getServer().getPluginManager().getPlugin("Factions"), feudal = getServer().getPluginManager().getPlugin("Feudal");
-        if (factions != null) setFactionsHook(new FactionsHook(this, factions));
+        final Plugin factions = getServer().getPluginManager().getPlugin("Factions");
+        if (factions != null) setFactionsHook(new FactionsHook(this));
         if (getServer().getPluginManager().getPlugin("Lands") != null) setLandsHook(new LandsHook(this));
-        if (feudal != null) setFeudalHook(new FeudalHook());
         if (getServer().getPluginManager().getPlugin("CoreProtect") != null)
             coreProtectHook = new CoreProtectHook(this);
 
@@ -148,10 +149,11 @@ public class PhysicsToGo extends JavaPlugin {
      */
     public boolean doesNotPassHooksCheck(Location location) {
         final boolean blockInClaims = getConfig().getBoolean("block-in-claims");
-        return ((blockInClaims && (getFactionsHook() != null && getFactionsHook().isInFactionClaim(location)))
-                || (blockInClaims && (getLandsHook() != null && getLandsHook().getLandsIntegration().isClaimed(location)))
-                || (blockInClaims && (getFeudalHook() != null && getFeudalHook().getFeudalAPI().getKingdom(location) != null))
-                || (blockInClaims && (getWorldGuardHook() != null && getWorldGuardHook().passedWorldGuardHook(location))));
+
+        return (blockInClaims && ((getFactionsHook() != null && getFactionsHook().isInFactionClaim(location))
+                || (getLandsHook() != null && location.getWorld() != null
+                && getLandsHook().getLandsIntegration().isClaimed(location.getWorld(), location.getChunk().getX(), location.getChunk().getZ()))
+                || (getWorldGuardHook() != null && getWorldGuardHook().passedWorldGuardHook(location))));
     }
 
     // general helper methods
@@ -333,14 +335,6 @@ public class PhysicsToGo extends JavaPlugin {
 
     private void setLandsHook(LandsHook landsHook) {
         this.landsHook = landsHook;
-    }
-
-    public FeudalHook getFeudalHook() {
-        return feudalHook;
-    }
-
-    private void setFeudalHook(FeudalHook feudalHook) {
-        this.feudalHook = feudalHook;
     }
 
     private void updateConfigs() {

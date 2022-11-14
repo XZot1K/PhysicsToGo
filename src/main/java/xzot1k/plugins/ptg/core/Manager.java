@@ -234,14 +234,10 @@ public class Manager {
      */
     public boolean isBlockedWorld(World world) {
         if (world == null) return false;
-        List<String> worldBlacklist = getPluginInstance().getConfig().getStringList("world-blacklist");
-        if (worldBlacklist.isEmpty()) return false;
 
-        for (int i = -1; ++i < worldBlacklist.size(); ) {
-            String worldName = worldBlacklist.get(i);
-            if (worldName != null && world.getName().equalsIgnoreCase(worldName))
-                return true;
-        }
+        for (String worldName : getPluginInstance().getConfig().getStringList("world-blacklist"))
+            if (worldName.equalsIgnoreCase(world.getName())) return true;
+
         return false;
     }
 
