@@ -65,11 +65,14 @@ public class Listeners implements Listener {
             if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
                     || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
 
-            for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
-                if (blockState.getWorld().getName().equals(e.getSourceBlock().getWorld().getName()) && blockState.getLocation().distance(e.getSourceBlock().getLocation()) < 5) {
-                    e.setCancelled(true);
-                    break;
-                }
+            try {
+                for (BlockState blockState : getPluginInstance().getManager().getSavedBlockStates())
+                    if (blockState.getWorld().getName().equals(e.getSourceBlock().getWorld().getName())
+                            && blockState.getLocation().distance(e.getSourceBlock().getLocation()) < 5) {
+                        e.setCancelled(true);
+                        break;
+                    }
+            } catch (Exception ignored) {}
         }
     }
 
