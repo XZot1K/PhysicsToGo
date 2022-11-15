@@ -44,6 +44,8 @@ public class BlockRegenerationTask implements Runnable {
         RegenerateEvent regenerateEvent = new RegenerateEvent(getPluginInstance(), getBlockState());
         getPluginInstance().getServer().getPluginManager().callEvent(regenerateEvent);
         if (regenerateEvent.isCancelled()) return;
+        
+|       /* Add extra config here */
 
         getBlockState().update(true, false);
         getPluginInstance().getManager().playNaturalBlockPlaceEffect(getBlock());

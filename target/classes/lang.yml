@@ -1,0 +1,3 @@
+no-permission: "&c&l[!]&r &7You do not have permission to use this."
+reload: "&a&l[!]&r &7All configurations have been reloaded and tasks have seized operations."
+help: "&c&l[!]&r &7Use &e/ptg <info/reload> &7as these are the only available commands."

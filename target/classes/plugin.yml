@@ -1,0 +1,35 @@
+name: PhysicsToGo
+version: 2.0.6
+api-version: 1.13
+main: xzot1k.plugins.ptg.PhysicsToGo
+author: XZot1K
+description: PhysicsToGo is a lightweight physics & environmental regeneration plugin.
+softdepend: [ Factions, MassiveCore, Lands, Feudal, WorldEdit, WorldGuard, CoreProtect, SlimeFun ]
+commands:
+
+  physicstogo:
+    default: op
+    description: The initial command for the plugin which handles it all.
+    aliases: [ptg]
+
+permissions:
+
+  ptg.*:
+    default: op
+    description: Gives all possible permissions provided by the plugin.
+    children:
+      ptg.info: true
+      ptg.reload: true
+      ptg.help: true
+
+  ptg.info:
+    default: op
+    description: Displays information about the currently plugin build.
+
+  ptg.reload:
+    default: op
+    description: Reloads the configurations and performs clean up time.
+
+  ptg.help:
+    default: op
+    description: Allows the sender to see the help message.

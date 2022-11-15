@@ -1,0 +1,77 @@
+# ^^^ DEVELOPER NOTES ^^^
+#
+# The "cancel-decay-radius" tells plugin if leaves or similar block may decay if within a 5 block radius of saved block states.
+# It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
+#
+# The "cancel-fall-radius" tells plugin if falling blocks such as sand or gravel may perform normally if within a 5 block radius of saved block states.
+# It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
+#
+# The "cancel-flow-radius" tells plugin if flowing blocks such as water or lava may perform normally if within a 5 block radius of saved block states.
+# It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
+#
+# The "gravity-effect-delay" tells the plugin how long created falling blocks from trees will have no gravity before letting normal mechanics initiate.
+#
+# The "block-sorting-priorities" is a list of materials with a priority from 0 to 10 that tells the algorithm
+# which materials it should prioritize (regenerate, build, break, etc.) FIRST. This means that higher priority materials
+# found in the list will be taken care of BEFORE lower priority materials. By default all materials, that are NOT listed,
+# will have a max high priority of 10. YOU DO NOT HAVE TO IDENTIFY EACH AND EVERY MATERIAL, USE GENERAL THINGS LIKE "BUTTON" or "WATER".
+# The values are also case-sensitive and are basically pieces from existing material names.
+#
+#
+#
+#
+
+cancel-decay-radius: true
+cancel-fall-radius: true
+cancel-flow-radius: true
+
+gravity-effect-delay: 10
+
+block-sorting-priorities:
+  LAVA: 0
+  PORTAL: 0
+  WATER: 0
+  BEAN: 1
+  BED: 1
+  BEETROOT: 1
+  BUSH: 1
+  BUTTON: 1
+  CACTUS: 1
+  CARPET: 1
+  CHORUS: 1
+  CORAL: 1
+  DOOR: 1
+  FERN: 1
+  FIRE: 1
+  FLOWER: 1
+  KELP: 1
+  LATTER: 1
+  LEAVES: 1
+  LILY: 1
+  LONG_GRASS: 1
+  MUSHROOM: 1
+  ORCHID: 1
+  PRESSURE_PLATE: 1
+  RAIL: 1
+  REDSTONE: 1
+  ROSE: 1
+  SAPLING: 1
+  SEED: 1
+  SIGN: 1
+  SNOW: 1
+  STALK: 1
+  STEM: 1
+  SUGAR_CANE: 1
+  TORCH: 1
+  TRAP_DOOR: 1
+  TRAPDOOR: 1
+  TRIPWIRE: 1
+  TULIP: 1
+  VINE: 1
+  WART: 1
+  ANVIL: 2
+  BANNER: 2
+  EGG: 2
+  GRAVEL: 2
+  SAND: 2
+  ICE: 5
