@@ -1,7 +1,5 @@
-
-
 <p align="center">
-  <img src="https://i.imgur.com/nHOUlWa.png" width="350" title="hover text">
+  <img src="https://i.imgur.com/nHOUlWa.png" width="150" title="TNT">
 </p>
 
 
