@@ -1,4 +1,5 @@
-!https://i.imgur.com/nHOUlWa.png
+!(https://i.imgur.com/nHOUlWa.png)
+!(https://imgur.com/nHOUlWa)
 
 *Bugs to be fixed*
 ***
