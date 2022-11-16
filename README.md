@@ -1,8 +1,7 @@
 !(https://i.imgur.com/nHOUlWa.png)
 !(https://imgur.com/nHOUlWa)
 
-![alt text](https://i.imgur.com/nHOUlWa.png)
-
+![alt text](https://i.imgur.com/nHOUlWab.png)
 *Bugs to be fixed*
 ***
 
