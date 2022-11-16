@@ -2,7 +2,6 @@
 <p align="left">
   <img src="https://i.imgur.com/nHOUlWa.png" width="180" title="TNT">
 </p>
-
 <b>PhysicsToGo Boosted Edition</b>
 
 
