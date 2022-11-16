@@ -1,11 +1,8 @@
-!(https://i.imgur.com/nHOUlWa.png)
-!(https://imgur.com/nHOUlWa)
-[img]https://i.imgur.com/nHOUlWat.png[/img]
+
 
 <a href="https://imgur.com/nHOUlWa"><img src="https://i.imgur.com/nHOUlWab.png" title="source: imgur.com" /></a>
 
-![alt text](https://i.imgur.com/nHOUlWat.png)
-![lol](https://i.imgur.com/nHOUlWas.png)
+
 *Bugs to be fixed*
 ***
 
