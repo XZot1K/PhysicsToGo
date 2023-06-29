@@ -38,7 +38,7 @@ public class PhysicsToGo extends JavaPlugin {
     private static PhysicsToGo pluginInstance;
     private Manager manager;
 
-    private String serverVersion;
+    private double serverVersion;
     private boolean particleAPI;
 
     private FactionsHook factionsHook;
@@ -84,12 +84,12 @@ public class PhysicsToGo extends JavaPlugin {
             }
         }
 
-        for (Map.Entry<LocationClone, String[]> contents : getManager().getSavedSignData().entrySet()) {
+        for (Map.Entry<LocationClone, Object> contents : getManager().getSavedSignData().entrySet()) {
             Location location = contents.getKey().asBukkitLocation();
             if (location.getBlock().getState() instanceof Sign) {
                 Sign sign = (Sign) location.getBlock().getState();
-                for (int i = -1; ++i < contents.getValue().length; )
-                    sign.setLine(i, contents.getValue()[i]);
+                //for (int i = -1; ++i < contents.getValue().length; )
+                //  sign.setLine(i, contents.getValue()[i]);
                 sign.update(true, false);
             }
         }
@@ -116,7 +116,9 @@ public class PhysicsToGo extends JavaPlugin {
         }
 
         // identifies and initializes the server's version.
-        setServerVersion(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
+        setServerVersion(Double.parseDouble(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]
+                .replace("_R", ".").replaceAll("[rvV_]*", "")));
+        System.out.println(getServerVersion());
 
         // creates and registers a new instance of the Manager class.
         setManager(new Manager(this));
@@ -305,11 +307,9 @@ public class PhysicsToGo extends JavaPlugin {
         this.manager = manager;
     }
 
-    public String getServerVersion() {
-        return serverVersion;
-    }
+    public double getServerVersion() {return serverVersion;}
 
-    private void setServerVersion(String serverVersion) {
+    private void setServerVersion(double serverVersion) {
         this.serverVersion = serverVersion;
     }
 

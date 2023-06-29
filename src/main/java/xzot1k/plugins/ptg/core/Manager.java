@@ -6,7 +6,9 @@ package xzot1k.plugins.ptg.core;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
@@ -26,7 +28,7 @@ public class Manager {
 
     private List<BlockState> savedBlockStates;
     private HashMap<LocationClone, ItemStack[]> savedContainerContents;
-    private HashMap<LocationClone, String[]> savedSignData;
+    private HashMap<LocationClone, Object> savedSignData;
 
     public Manager(PhysicsToGo pluginInstance) {
         setPluginInstance(pluginInstance);
@@ -89,23 +91,35 @@ public class Manager {
      *
      * @return If the server is post 1.13.
      */
-    public boolean isBlockDataVersion() {
-        return !(getPluginInstance().getServerVersion().startsWith("v1_12") || getPluginInstance().getServerVersion().startsWith("v1_11")
-                || getPluginInstance().getServerVersion().startsWith("v1_10") || getPluginInstance().getServerVersion().startsWith("v1_9")
-                || getPluginInstance().getServerVersion().startsWith("v1_8") || getPluginInstance().getServerVersion().startsWith("v1_7"));
-    }
+    public boolean isBlockDataVersion() {return getPluginInstance().getServerVersion() >= 1_13;}
 
     /**
      * Determines if the server version is post 1.8 or not.
      *
      * @return If the server is post 1.8.
      */
-    public boolean isOffHandVersion() {
-        return !(getPluginInstance().getServerVersion().equalsIgnoreCase("v1_9") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_10")
-                || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_11") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_12")
-                || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_13") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_14")
-                || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_15") || getPluginInstance().getServerVersion().equalsIgnoreCase("v1_16"));
+    public boolean isOffHandVersion() {return getPluginInstance().getServerVersion() > 1_8;}
+
+
+    /**
+     * @param block The block to check
+     * @return Whether the partnered chest has its inventory stored already.
+     */
+    public boolean isDoubleChestPartnerStored(Block block) {
+        if (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST) return false;
+
+        final Chest chest = (Chest) block.getState();
+        for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
+            Block relative = block.getRelative(face);
+            if (relative.getType() != block.getType()) continue;
+            if (chest.getInventory().equals(((Chest) relative.getState()).getInventory())) {
+                return getSavedContainerContents().entrySet().parallelStream().anyMatch(entry -> entry.getKey().isIdentical(relative.getLocation()));
+            }
+        }
+
+        return false;
     }
+
 
     /**
      * Determines if the passed block is a material is NOT a natural tree material.
@@ -400,7 +414,8 @@ public class Manager {
         if (hasNoGravityTemporarily) {
             fallingBlock.setGravity(false);
             fallingBlock.setVelocity(new Vector(0, 0, 0));
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), () -> fallingBlock.setGravity(true), getPluginInstance().getAdvancedConfig().getInt("gravity-effect-delay"));
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), () -> fallingBlock.setGravity(true), getPluginInstance().getAdvancedConfig().getInt(
+                    "gravity-effect-delay"));
         }
     }
 
@@ -535,11 +550,11 @@ public class Manager {
      *
      * @return The sign data map.
      */
-    public HashMap<LocationClone, String[]> getSavedSignData() {
+    public HashMap<LocationClone, Object> getSavedSignData() {
         return savedSignData;
     }
 
-    private void setSavedSignData(HashMap<LocationClone, String[]> savedSignData) {
+    private void setSavedSignData(HashMap<LocationClone, Object> savedSignData) {
         this.savedSignData = savedSignData;
     }
 }

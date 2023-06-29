@@ -12,6 +12,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import xzot1k.plugins.ptg.PhysicsToGo;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
+import xzot1k.plugins.ptg.core.objects.Pair;
 import xzot1k.plugins.ptg.events.RegenerateEvent;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class BlockRegenerationTask implements Runnable {
         setPlacement(isPlacement);
     }
 
+    @SuppressWarnings({"unchecked", "deprecation"})
     @Override
     public void run() {
         if (getBlockState() == null) return;
@@ -59,9 +61,8 @@ public class BlockRegenerationTask implements Runnable {
                 if (locationClone == null || !locationClone.isIdentical(getBlock().getLocation())) continue;
 
                 ItemStack[] items = getPluginInstance().getManager().getSavedContainerContents().get(locationClone);
-                if (items == null || items.length <= 0) continue;
+                if (items != null && items.length != 0) ih.getInventory().setContents(items);
 
-                ih.getInventory().setContents(items);
                 getPluginInstance().getManager().getSavedContainerContents().remove(locationClone);
             }
 
@@ -74,12 +75,26 @@ public class BlockRegenerationTask implements Runnable {
                 LocationClone locationClone = locationClones.get(i);
                 if (locationClone == null || !locationClone.isIdentical(getBlock().getLocation())) continue;
 
-                String[] lines = getPluginInstance().getManager().getSavedSignData().get(locationClone);
-                if (lines == null || lines.length <= 0) continue;
+                Object signData = getPluginInstance().getManager().getSavedSignData().get(locationClone);
 
-                for (int j = -1; ++j < lines.length; ) sign.setLine(j, lines[j]);
+                if (getPluginInstance().getServerVersion() >= 1_20) {
+                    List<Pair<org.bukkit.block.sign.Side, org.bukkit.block.sign.SignSide>> signSides =
+                            (List<Pair<org.bukkit.block.sign.Side, org.bukkit.block.sign.SignSide>>) signData;
+                    for (int j = -1; ++j < signSides.size(); ) {
+                        Pair<org.bukkit.block.sign.Side, org.bukkit.block.sign.SignSide> signSide = signSides.get(j);
+                        org.bukkit.block.sign.SignSide side = sign.getSide(signSide.getKey());
+                        side.setGlowingText(signSide.getValue().isGlowingText());
+                        for (int k = -1; ++k < signSide.getValue().getLines().length; )
+                            side.setLine(k, signSide.getValue().getLine(k));
+                    }
+                } else {
+                    String[] lines = (String[]) signData;
+                    if (lines == null || lines.length == 0) continue;
+
+                    for (int j = -1; ++j < lines.length; ) sign.setLine(j, lines[j]);
+                }
+
                 sign.update(true, false);
-
                 getPluginInstance().getManager().getSavedSignData().remove(locationClone);
             }
         }

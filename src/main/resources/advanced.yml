@@ -1,32 +1,21 @@
-# ^^^ DEVELOPER NOTES ^^^
-#
-# The "cancel-decay-radius" tells plugin if leaves or similar block may decay if within a 5 block radius of saved block states.
+# This tells plugin if leaves or similar block may decay if within a 5 block radius of saved block states.
 # It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
-#
-# The "cancel-fall-radius" tells plugin if falling blocks such as sand or gravel may perform normally if within a 5 block radius of saved block states.
+cancel-decay-radius: true
+# This tells plugin if falling blocks such as sand or gravel may perform normally if within a 5 block radius of saved block states.
 # It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
-#
-# The "cancel-flow-radius" tells plugin if flowing blocks such as water or lava may perform normally if within a 5 block radius of saved block states.
+cancel-fall-radius: true
+# This tells plugin if flowing blocks such as water or lava may perform normally if within a 5 block radius of saved block states.
 # It is recommended to keep this option enabled to allow regeneration effects to take place at full potential.
-#
-# The "gravity-effect-delay" tells the plugin how long created falling blocks from trees will have no gravity before letting normal mechanics initiate.
-#
-# The "block-sorting-priorities" is a list of materials with a priority from 0 to 10 that tells the algorithm
+cancel-flow-radius: true
+
+# This tells the plugin how long created falling blocks from trees will have no gravity before letting normal mechanics initiate.
+gravity-effect-delay: 10
+
+# This is a list of materials with a priority from 0 to 10 that tells the algorithm
 # which materials it should prioritize (regenerate, build, break, etc.) FIRST. This means that higher priority materials
 # found in the list will be taken care of BEFORE lower priority materials. By default all materials, that are NOT listed,
 # will have a max high priority of 10. YOU DO NOT HAVE TO IDENTIFY EACH AND EVERY MATERIAL, USE GENERAL THINGS LIKE "BUTTON" or "WATER".
 # The values are also case-sensitive and are basically pieces from existing material names.
-#
-#
-#
-#
-
-cancel-decay-radius: true
-cancel-fall-radius: true
-cancel-flow-radius: true
-
-gravity-effect-delay: 10
-
 block-sorting-priorities:
   LAVA: 0
   PORTAL: 0
