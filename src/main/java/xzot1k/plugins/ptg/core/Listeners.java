@@ -97,6 +97,7 @@ public class Listeners implements Listener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onForm(EntityChangeBlockEvent e) {
         if (getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
@@ -117,6 +118,7 @@ public class Listeners implements Listener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlace(BlockPlaceEvent e) {
         if (e.isCancelled() || getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
@@ -130,7 +132,7 @@ public class Listeners implements Listener {
             if (checkState(blockState, ActionType.PLACE)) return;
 
             if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType())
-                    || getPluginInstance().getManager().isAvoidedMaterial(e.getBlock().getType()))
+                    || getPluginInstance().getManager().isAvoidedMaterial(e.getBlock().getType(), e.getBlock().getData()))
                 return;
 
             if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
@@ -142,6 +144,7 @@ public class Listeners implements Listener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled() || getPluginInstance().doesNotPassHooksCheck(e.getBlock().getLocation())) return;
@@ -163,7 +166,8 @@ public class Listeners implements Listener {
                 }
 
                 final BlockState blockState = e.getBlock().getState();
-                final boolean drops = getPluginInstance().getConfig().getBoolean("tree-drops"), treeRegeneration = getPluginInstance().getConfig().getBoolean("tree-regeneration");
+                final boolean drops = getPluginInstance().getConfig().getBoolean("tree-drops"),
+                        treeRegeneration = getPluginInstance().getConfig().getBoolean("tree-regeneration");
                 if (checkState(blockState, ActionType.TREE_BREAK)) return;
 
                 e.setCancelled(true);
@@ -179,8 +183,8 @@ public class Listeners implements Listener {
             final BlockState blockState = e.getBlock().getState();
             if (checkState(blockState, ActionType.BREAK)) return;
 
-            if (!getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType()) || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType()))
-                return;
+            final Pair<Boolean, Integer> wbmPair = getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType());
+            if (!wbmPair.getKey() || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType(), blockState.getRawData())) return;
 
             if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
                 getPluginInstance().getCoreProtectHook().logLocation(blockState.getLocation());
@@ -199,11 +203,12 @@ public class Listeners implements Listener {
                     signRestore = getPluginInstance().getConfig().getBoolean("sign-restoration");
             handleSpecialStateRetore(e.getBlock(), blockState, containerRestore, signRestore);
 
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false),
-                    getPluginInstance().getConfig().getInt("break-regeneration-delay"));
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
+                    new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false), wbmPair.getValue());
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onExplode(EntityExplodeEvent e) {
         if (e.isCancelled()) return;
@@ -216,6 +221,8 @@ public class Listeners implements Listener {
             e.blockList().clear();
             return;
         }
+
+        e.blockList().removeIf(block -> getPluginInstance().getManager().isAvoidedMaterial(block.getType(), block.getData()));
 
         final List<Block> blockList = new ArrayList<>(e.blockList());
         int delay = getPluginInstance().getConfig().getInt("explosive-regeneration-delay"),
@@ -234,12 +241,8 @@ public class Listeners implements Listener {
             if (block == null || getPluginInstance().doesNotPassHooksCheck(block.getLocation())) continue;
 
             final BlockState blockState = block.getState();
-            if (checkState(blockState, ActionType.EXPLOSIVE)) continue;
-
-            if (getPluginInstance().getManager().isAvoidedMaterial(block.getType())) {
-                e.blockList().remove(i);
-                continue;
-            }
+            if (checkState(blockState, ActionType.EXPLOSIVE)
+                    || getPluginInstance().getManager().isAvoidedMaterial(block.getType(), block.getData())) continue;
 
             getPluginInstance().getManager().playNaturalBlockBreakEffect(block); // play special effect
 
@@ -274,7 +277,8 @@ public class Listeners implements Listener {
             handleSpecialStateRetore(block, blockState, containerRestore, signRestore);
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
+                    new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);
             delay += speed;
         }
     }

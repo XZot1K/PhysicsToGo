@@ -103,11 +103,13 @@ public class TreePhysicsTask implements Runnable {
 
             if (adjacentBlock.getType().name().contains("LOG")) {
                 TreePhysicsTask treePhysicsTask = new TreePhysicsTask(getPluginInstance(), getPlayer(), adjacentBlock.getState(), canDrop(), canRegenerate());
-                treePhysicsTask.setTaskId(getPluginInstance().getServer().getScheduler().runTaskTimer(getPluginInstance(), treePhysicsTask, 0, getPluginInstance().getConfig().getInt("tree-regeneration-speed")).getTaskId());
+                treePhysicsTask.setTaskId(getPluginInstance().getServer().getScheduler().runTaskTimer(getPluginInstance(), treePhysicsTask, 0,
+                        getPluginInstance().getConfig().getInt("tree-regeneration-speed")).getTaskId());
                 return;
             }
 
-            takeActionOnBlock(adjacentBlock, getTreeRegenDelay() + (adjacentBlock.getType().name().contains("LOG") ? 0 : getPluginInstance().getManager().getRandomInRange(20, 30)));
+            takeActionOnBlock(adjacentBlock, getTreeRegenDelay() + (adjacentBlock.getType().name().contains("LOG") ? 0 : getPluginInstance().getManager().getRandomInRange(20,
+                    30)));
             workAdjacents(adjacentBlock, counter + 1); // nested adjacent checks.
         }
     }
@@ -124,7 +126,8 @@ public class TreePhysicsTask implements Runnable {
     }
 
     private void takeActionOnBlock(Block block, int delay) {
-        getPluginInstance().getCoreProtectHook().logLocation(block.getLocation()); // log to core protect.
+        if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
+            getPluginInstance().getCoreProtectHook().logLocation(block.getLocation()); // log to core protect.
         final BlockState blockState = block.getState();
         if (canRegenerate()) getPluginInstance().getManager().getSavedBlockStates().add(blockState);
 

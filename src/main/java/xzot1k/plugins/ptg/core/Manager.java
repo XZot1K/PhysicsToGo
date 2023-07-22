@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import xzot1k.plugins.ptg.PhysicsToGo;
 import xzot1k.plugins.ptg.core.enums.TreeType;
 import xzot1k.plugins.ptg.core.objects.LocationClone;
+import xzot1k.plugins.ptg.core.objects.Pair;
 import xzot1k.plugins.ptg.core.objects.SaplingData;
 
 import java.util.*;
@@ -136,16 +137,23 @@ public class Manager {
     /**
      * Checks to see if the material is a configured material that should be avoided.
      *
-     * @param material The material to check.
+     * @param material   The material to check.
+     * @param durability The durability of the material (For older versions of MineCraft).
      * @return If it is a material to avoid.
      */
-    public boolean isAvoidedMaterial(Material material) {
+    public boolean isAvoidedMaterial(Material material, int durability) {
         List<String> materialNames = getPluginInstance().getConfig().getStringList("avoided-materials");
         if (materialNames.isEmpty()) return false;
 
         for (int i = -1; ++i < materialNames.size(); ) {
-            String materialName = materialNames.get(i);
-            if (materialName != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+            final String materialName = materialNames.get(i);
+            if (materialName == null || materialName.isEmpty()) continue;
+
+            if (materialName.contains(":")) {
+                String[] args = materialName.split(":");
+                if (material.name().contains(args[0].toUpperCase().replace(" ", "_").replace("-", "_"))
+                        && args[1].equals(String.valueOf(durability))) return true;
+            } else if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
         }
         return false;
@@ -173,18 +181,25 @@ public class Manager {
      * Checks to see if the material is whitelisted to be only effected (Block Breaking).
      *
      * @param material The material to check.
-     * @return If it is a whitelisted material.
+     * @return If it is a whitelisted material (Returns NULL if invalid).
      */
-    public boolean isWhitelistedBreakMaterial(Material material) {
+    public Pair<Boolean, Integer> isWhitelistedBreakMaterial(Material material) {
         List<String> effectedMaterials = getPluginInstance().getConfig().getStringList("break-only-effected");
-        if (effectedMaterials.isEmpty()) return true;
+        if (effectedMaterials.isEmpty()) return null;
 
         for (int i = -1; ++i < effectedMaterials.size(); ) {
             String materialName = effectedMaterials.get(i);
-            if (material != null && material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
-                return true;
+            if (materialName == null || materialName.isEmpty()) continue;
+
+            if (materialName.contains(":")) {
+                String[] args = materialName.split(":");
+                if (material.name().contains(args[0].toUpperCase().replace(" ", "_").replace("-", "_")))
+                    return new Pair<>(true, Integer.parseInt(args[1]));
+            } else if (material.name().contains(materialName.toUpperCase().replace(" ", "_").replace("-", "_")))
+                return new Pair<>(true, getPluginInstance().getConfig().getInt("break-regeneration-delay"));
         }
-        return false;
+
+        return null;
     }
 
     /**

@@ -48,8 +48,10 @@ explosive-tnt-ignite: true
 # This tells the plugin what the fuse of harmed tnt blocks should be (IN TICKS, 20 ticks = 1 second). This option requires the "explosive-tnt-ignite" feature to be enabled.
 explosive-tnt-fuse: 10
 # This is a list that will prevent explosive block regeneration entirely if the explosion was caused by an entity in this list.
+# Entities: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
 blocked-entity-regeneration: [ ]
 # This is a list that will block explosive damage and effects toward all entity types found in the list.
+# Entities: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
 explosive-blocked-entities:
   - "ARMOR_STAND"
   - "PAINTING"
@@ -61,6 +63,7 @@ place-removal: false
 # This determines how long (IN TICKS, 20 ticks = 1 second) it will take for the block to be removed and reverted to the original material.
 place-removal-delay: 20
 # This list will act as a whitelist when the "place-removal" option is enabled and will ONLY remove the materials found in the list.
+# Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 # (NOTE: This list will be avoided if it is empty.)
 place-only-effected:
   - "TORCH"
@@ -71,14 +74,16 @@ break-regeneration: false
 break-drops: true
 # This determines how long (IN TICKS, 20 ticks = 1 second) it will take for the block to be regenerated to its original state.
 break-regeneration-delay: 20
-# This list will act as a whitelist when the "break-regeneration" option is enabled. All materials in the list will regenerate after a delay to their original material.
-# (NOTE: This list will be avoided if it is empty.)
+# This list is a whitelist and requires the "break-regeneration" option enabled. All materials in the list will regenerate after a delay to their original material.
+# Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# (NOTE: This list will be avoided if it is empty. You may use the format: <material>:<delay> to set individual delays for specific materials)
 break-only-effected:
-  - "ORE"
+  - "ORE:120"
 
 # This will convert the "blocked-material-regeneration" into a whitelist from a blacklist.
 invert-bmr: false
 # This is a list that will prevent block regeneration entirely if its material is in the list.
+# Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 blocked-material-regeneration:
   - "FIRE"
   - "TNT"
@@ -89,6 +94,7 @@ invert-wb: false
 world-blacklist:
   - "blocked_world"
 # This list should contain all materials that should be avoided like the black plague. Essentially these materials are safe from the plugins actions at all costs.
+# Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 avoided-materials:
   - "BEDROCK"
   - "OBSIDIAN"
