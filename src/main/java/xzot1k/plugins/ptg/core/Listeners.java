@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
@@ -208,7 +209,22 @@ public class Listeners implements Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onBlockExplode(BlockExplodeEvent e) {
+        if (e.isCancelled()) return;
+
+        final boolean invertedBlockedWorlds = getPluginInstance().getConfig().getBoolean("invert-wb");
+        if ((!invertedBlockedWorlds && getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))
+                || (invertedBlockedWorlds && !getPluginInstance().getManager().isBlockedWorld(e.getBlock().getWorld()))) return;
+
+        if (getPluginInstance().getConfig().getBoolean("no-block-explosions")) {
+            e.blockList().clear();
+            return;
+        }
+
+        e.setYield(handleExplosives(e.blockList(), e.getYield(), null, e.getBlock()));
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onExplode(EntityExplodeEvent e) {
         if (e.isCancelled()) return;
@@ -222,9 +238,17 @@ public class Listeners implements Listener {
             return;
         }
 
-        e.blockList().removeIf(block -> getPluginInstance().getManager().isAvoidedMaterial(block.getType(), block.getData()));
+        e.setYield(handleExplosives(e.blockList(), e.getYield(), e.getEntity(), null));
+    }
 
-        final List<Block> blockList = new ArrayList<>(e.blockList());
+    @SuppressWarnings("deprecation")
+    private float handleExplosives(List<Block> blocklist, float ogYield, Entity entity, Block causeBlock) {
+        boolean yield = false,
+                isBlockedEntity = (causeBlock == null && entity != null && getPluginInstance().getManager().isBlockedExplosiveRegenEntity(entity.getType())),
+                isBlockedBlock = (entity == null && causeBlock != null && getPluginInstance().getManager().isBlockedExplosiveRegenBlock(causeBlock.getType()));
+        blocklist.removeIf(block -> getPluginInstance().getManager().isAvoidedMaterial(block.getType(), block.getData()));
+
+        final List<Block> blockList = new ArrayList<>(blocklist);
         int delay = getPluginInstance().getConfig().getInt("explosive-regeneration-delay"),
                 speed = getPluginInstance().getConfig().getInt("explosive-regeneration-speed");
         final boolean explosiveDrops = getPluginInstance().getConfig().getBoolean("explosive-drops"),
@@ -247,7 +271,7 @@ public class Listeners implements Listener {
             getPluginInstance().getManager().playNaturalBlockBreakEffect(block); // play special effect
 
             if (ignite && block.getType().name().contains("TNT")) {
-                e.blockList().remove(i);
+                blocklist.remove(i);
                 block.setType(Material.AIR);
 
                 TNTPrimed primed = block.getWorld().spawn(block.getLocation().add(0.0D, 1.0D, 0.0D), TNTPrimed.class);
@@ -255,7 +279,7 @@ public class Listeners implements Listener {
                 continue;
             }
 
-            if (physics && ((Math.random() * 100) < 15) && fallingBlockCount < (e.blockList().size() * 0.25)) {
+            if (physics && ((Math.random() * 100) < 15) && fallingBlockCount < (blockList.size() * 0.25)) {
                 getPluginInstance().getManager().createFallingBlock(block, blockState, true, false);
                 fallingBlockCount++;
             }
@@ -264,15 +288,15 @@ public class Listeners implements Listener {
                 if (block.getState() instanceof InventoryHolder)
                     ((InventoryHolder) block.getState()).getInventory().clear();
 
-                e.setYield(0);
+                yield = true;
                 block.setType(Material.AIR);
             }
 
-            if (!regen || getPluginInstance().getManager().isBlockedExplosiveRegenEntity(e.getEntity().getType())) continue;
+            if (!regen || isBlockedEntity || isBlockedBlock) continue;
 
             final boolean inverted = getPluginInstance().getConfig().getBoolean("invert-bmr");
             if ((!inverted && getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))
-                    || (inverted && !getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))) return;
+                    || (inverted && !getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))) continue;
 
             handleSpecialStateRetore(block, blockState, containerRestore, signRestore);
 
@@ -281,6 +305,8 @@ public class Listeners implements Listener {
                     new BlockRegenerationTask(getPluginInstance(), block, blockState, false), delay);
             delay += speed;
         }
+
+        return (yield ? 0 : ogYield);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

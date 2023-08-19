@@ -101,7 +101,6 @@ public class Manager {
      */
     public boolean isOffHandVersion() {return getPluginInstance().getServerVersion() > 1_8;}
 
-
     /**
      * @param block The block to check
      * @return Whether the partnered chest has its inventory stored already.
@@ -120,7 +119,6 @@ public class Manager {
 
         return false;
     }
-
 
     /**
      * Determines if the passed block is a material is NOT a natural tree material.
@@ -229,10 +227,28 @@ public class Manager {
     public boolean isBlockedExplosiveRegenEntity(EntityType entityType) {
         List<String> blockedEntities = getPluginInstance().getConfig().getStringList("blocked-entity-regeneration");
         if (blockedEntities.isEmpty()) return false;
-
         for (int i = -1; ++i < blockedEntities.size(); ) {
             String entityTypeName = blockedEntities.get(i);
-            if (entityTypeName != null && entityType.name().contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
+            if (entityTypeName != null && entityType.name().replace(" ", "_").replace("-", "_")
+                    .contains(entityTypeName.toUpperCase().replace(" ", "_").replace("-", "_")))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks to see if the block can regenerate blocks it exploded.
+     *
+     * @param material The block material type to check for.
+     * @return Whether it can regenerate blocks or not.
+     */
+    public boolean isBlockedExplosiveRegenBlock(Material material) {
+        List<String> blockedBlocks = getPluginInstance().getConfig().getStringList("blocked-block-regeneration");
+        if (blockedBlocks.isEmpty()) return false;
+        for (int i = -1; ++i < blockedBlocks.size(); ) {
+            String blockName = blockedBlocks.get(i);
+            if (blockName != null && material.name().replace(" ", "_").replace("-", "_")
+                    .contains(blockName.toUpperCase().replace(" ", "_").replace("-", "_")))
                 return true;
         }
         return false;

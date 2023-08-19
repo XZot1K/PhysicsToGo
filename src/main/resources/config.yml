@@ -58,6 +58,12 @@ explosive-blocked-entities:
   - "ITEM_FRAME"
   - "MINECART"
 
+# This determines if the plugin will block all block explosion damage to other blocks or not.
+no-block-explosions: false
+# This is a list that will prevent explosive block regeneration entirely if the explosion was caused by a block material in this list.
+# Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+blocked-block-regeneration: [ "BED", "AIR" ]
+
 # This determines if block placed by the player will regenerate after a delay.
 place-removal: false
 # This determines how long (IN TICKS, 20 ticks = 1 second) it will take for the block to be removed and reverted to the original material.
