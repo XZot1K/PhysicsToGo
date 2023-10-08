@@ -118,7 +118,6 @@ public class PhysicsToGo extends JavaPlugin {
         // identifies and initializes the server's version.
         setServerVersion(Double.parseDouble(getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]
                 .replace("_R", ".").replaceAll("[rvV_]*", "")));
-        System.out.println(getServerVersion());
 
         // creates and registers a new instance of the Manager class.
         setManager(new Manager(this));
@@ -152,10 +151,10 @@ public class PhysicsToGo extends JavaPlugin {
     public boolean doesNotPassHooksCheck(Location location) {
         final boolean blockInClaims = getConfig().getBoolean("block-in-claims");
 
-        return (blockInClaims && ((getFactionsHook() != null && getFactionsHook().isInFactionClaim(location))
+        return (blockInClaims && (getWorldGuardHook() != null && getWorldGuardHook().passedWorldGuardHook(location)))
+                && ((getFactionsHook() != null && getFactionsHook().isInFactionClaim(location))
                 || (getLandsHook() != null && location.getWorld() != null
-                && getLandsHook().getLandsIntegration().isClaimed(location.getWorld(), location.getChunk().getX(), location.getChunk().getZ()))
-                || (getWorldGuardHook() != null && getWorldGuardHook().passedWorldGuardHook(location))));
+                && getLandsHook().getLandsIntegration().isClaimed(location.getWorld(), location.getChunk().getX(), location.getChunk().getZ())));
     }
 
     // general helper methods
@@ -168,7 +167,8 @@ public class PhysicsToGo extends JavaPlugin {
 
     private int updateKeys(FileConfiguration jarYaml, FileConfiguration currentYaml) {
         int updateCount = 0;
-        ConfigurationSection currentConfigurationSection = currentYaml.getConfigurationSection(""), latestConfigurationSection = jarYaml.getConfigurationSection("");
+        ConfigurationSection currentConfigurationSection = currentYaml.getConfigurationSection(""), latestConfigurationSection =
+                jarYaml.getConfigurationSection("");
         if (currentConfigurationSection != null && latestConfigurationSection != null) {
             Set<String> newKeys = latestConfigurationSection.getKeys(true), currentKeys = currentConfigurationSection.getKeys(true);
             for (String updatedKey : newKeys)
@@ -348,7 +348,8 @@ public class PhysicsToGo extends JavaPlugin {
             InputStream inputStream = getClass().getResourceAsStream("/" + name + ".yml");
             BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(inputStream)));
             FileConfiguration yaml = YamlConfiguration.loadConfiguration(reader);
-            int updateCount = updateKeys(yaml, name.equalsIgnoreCase("lang") ? getLangConfig() : name.equalsIgnoreCase("config") ? getConfig() : getAdvancedConfig());
+            int updateCount = updateKeys(yaml, name.equalsIgnoreCase("lang") ? getLangConfig() : name.equalsIgnoreCase("config") ? getConfig() :
+                    getAdvancedConfig());
 
             try {
                 inputStream.close();

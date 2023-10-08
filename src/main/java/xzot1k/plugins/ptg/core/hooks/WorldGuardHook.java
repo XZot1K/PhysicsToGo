@@ -48,7 +48,8 @@ public class WorldGuardHook {
             try {
                 Method method = worldGuardPlugin.getClass().getMethod("getRegionManager", World.class);
 
-                com.sk89q.worldguard.protection.managers.RegionManager regionManager = (com.sk89q.worldguard.protection.managers.RegionManager) method.invoke(worldGuardPlugin, location.getWorld());
+                com.sk89q.worldguard.protection.managers.RegionManager regionManager =
+                        (com.sk89q.worldguard.protection.managers.RegionManager) method.invoke(worldGuardPlugin, location.getWorld());
                 if (regionManager == null) return true;
 
                 Method applicableRegionsMethod = worldGuardPlugin.getClass().getMethod("getApplicableRegions", Location.class);
@@ -57,18 +58,21 @@ public class WorldGuardHook {
                 e.printStackTrace();
             }
         } else {
-            com.sk89q.worldguard.protection.regions.RegionQuery query = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
+            com.sk89q.worldguard.protection.regions.RegionQuery query =
+                    com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
             com.sk89q.worldedit.util.Location worldEditLocation = com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(location);
             applicableRegionSet = query.getApplicableRegions(worldEditLocation);
         }
 
         if (applicableRegionSet == null) return true;
+        System.out.println("test 1");
+
         Set<com.sk89q.worldguard.protection.regions.ProtectedRegion> regions = applicableRegionSet.getRegions();
         if (regions.isEmpty()) return true;
 
-        for (com.sk89q.worldguard.protection.regions.ProtectedRegion protectedRegion : regions)
-            if (protectedRegion.getFlags().containsKey(PTG_ALLOW) && (protectedRegion.getFlags().get(PTG_ALLOW) instanceof Boolean
-                    && ((boolean) protectedRegion.getFlags().get(PTG_ALLOW)))) return true;
-        return false;
+        System.out.println("test 2");
+
+        return regions.parallelStream().anyMatch(protectedRegion -> (protectedRegion.getFlags().containsKey(PTG_ALLOW)
+                && (protectedRegion.getFlags().get(PTG_ALLOW) instanceof Boolean && ((boolean) protectedRegion.getFlags().get(PTG_ALLOW)))));
     }
 }

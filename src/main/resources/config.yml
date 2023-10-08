@@ -2,7 +2,7 @@
 # IN THEIR ENTITY TYPE NAME.
 
 # This is an extra step which will not perform any PTG tasks in supported claims found from other plugins under any circumstance.
-block-in-claims: false
+block-in-claims: true
 # This determines if actions such as explosives, placing, or break of existing locations where regeneration effects are scheduled will be allowed to merge.
 # (For Example: When a player breaks a block and it is scheduled to regenerate, this will allow them to place block at that same location etc.)
 state-override: false
