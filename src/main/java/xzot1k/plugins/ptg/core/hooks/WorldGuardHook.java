@@ -65,14 +65,15 @@ public class WorldGuardHook {
         }
 
         if (applicableRegionSet == null) return true;
-        System.out.println("test 1");
 
         Set<com.sk89q.worldguard.protection.regions.ProtectedRegion> regions = applicableRegionSet.getRegions();
         if (regions.isEmpty()) return true;
 
-        System.out.println("test 2");
+        for (com.sk89q.worldguard.protection.regions.ProtectedRegion protectedRegion : regions) {
+            Object ptgFlag = protectedRegion.getFlags().getOrDefault(PTG_ALLOW, null);
+            if (ptgFlag instanceof Boolean && !((Boolean) ptgFlag)) return false;
+        }
 
-        return regions.parallelStream().anyMatch(protectedRegion -> (protectedRegion.getFlags().containsKey(PTG_ALLOW)
-                && (protectedRegion.getFlags().get(PTG_ALLOW) instanceof Boolean && ((boolean) protectedRegion.getFlags().get(PTG_ALLOW)))));
+        return true;
     }
 }
