@@ -12,6 +12,11 @@ import xzot1k.plugins.ptg.PhysicsToGo;
 public class RegenerateEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
+
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     private PhysicsToGo pluginInstance;
     private boolean cancelled;
     private BlockState blockState;
