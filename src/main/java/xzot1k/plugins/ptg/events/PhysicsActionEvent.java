@@ -13,6 +13,9 @@ import xzot1k.plugins.ptg.core.enums.ActionType;
 public class PhysicsActionEvent extends Event {
 
     private static final HandlerList handlers = new HandlerList();
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
     private PhysicsToGo pluginInstance;
     private boolean cancelled;
 
