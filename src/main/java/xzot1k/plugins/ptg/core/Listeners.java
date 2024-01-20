@@ -185,7 +185,7 @@ public class Listeners implements Listener {
             if (checkState(blockState, ActionType.BREAK)) return;
 
             final Pair<Boolean, Integer> wbmPair = getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType());
-            if (!wbmPair.getKey() || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType(), blockState.getRawData())) return;
+            if (wbmPair != null && (!wbmPair.getKey() || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType(), blockState.getRawData()))) return;
 
             if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
                 getPluginInstance().getCoreProtectHook().logLocation(blockState.getLocation());
