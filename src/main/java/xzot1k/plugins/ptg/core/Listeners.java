@@ -204,7 +204,7 @@ public class Listeners implements Listener {
                     signRestore = getPluginInstance().getConfig().getBoolean("sign-restoration");
             handleSpecialStateRetore(e.getBlock(), blockState, containerRestore, signRestore);
 
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
+            if (wbmPair != null) getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
                     new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false), wbmPair.getValue());
         }
     }
