@@ -49,7 +49,8 @@ public class TreePhysicsTask implements Runnable {
     @Override
     public void run() {
         Block currentTrunkBlock = getInitialBlockState().getBlock().getRelative(0, getCurrentHeight(), 0);
-        if (getPluginInstance().getManager().isNotTreeBlock(currentTrunkBlock) || getPluginInstance().getManager().getSavedBlockStates().contains(currentTrunkBlock.getState())
+        if (getPluginInstance().getManager().isNotTreeBlock(currentTrunkBlock)
+                || getPluginInstance().getManager().getSavedBlockStates().contains(currentTrunkBlock.getState())
                 || getPluginInstance().doesNotPassHooksCheck(currentTrunkBlock.getLocation())) {
             takeActionOnBlock(currentTrunkBlock, getTreeRegenDelay());
             workAdjacents(currentTrunkBlock, getTreeRegenDelay());
@@ -108,8 +109,8 @@ public class TreePhysicsTask implements Runnable {
                 return;
             }
 
-            takeActionOnBlock(adjacentBlock, getTreeRegenDelay() + (adjacentBlock.getType().name().contains("LOG") ? 0 : getPluginInstance().getManager().getRandomInRange(20,
-                    30)));
+            takeActionOnBlock(adjacentBlock, getTreeRegenDelay() + (adjacentBlock.getType().name().contains("LOG") ? 0
+                    : getPluginInstance().getManager().getRandomInRange(20, 30)));
             workAdjacents(adjacentBlock, counter + 1); // nested adjacent checks.
         }
     }

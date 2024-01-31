@@ -27,14 +27,14 @@ public class Manager {
     private PhysicsToGo pluginInstance;
     private Random random;
 
-    private List<BlockState> savedBlockStates;
+    private HashSet<BlockState> savedBlockStates;
     private HashMap<LocationClone, ItemStack[]> savedContainerContents;
     private HashMap<LocationClone, Object> savedSignData;
 
     public Manager(PhysicsToGo pluginInstance) {
         setPluginInstance(pluginInstance);
         setRandom(new Random());
-        setSavedBlockStates(new ArrayList<>());
+        setSavedBlockStates(new HashSet<>());
         setSavedContainerContents(new HashMap<>());
         setSavedSignData(new HashMap<>());
     }
@@ -360,9 +360,9 @@ public class Manager {
      */
     public void playNaturalBlockPlaceEffect(Block block) {
         if (getPluginInstance().getManager().isBlockDataVersion()) {
-            block.getWorld().spawnParticle(Particle.BLOCK_DUST, ((block.getLocation().getX() + 0.5) + getPluginInstance().getManager().getRandomInRange(-1, 1)),
-                    ((block.getLocation().getY() + 0.5) + getPluginInstance().getManager().getRandomInRange(-1, 1)),
-                    ((block.getLocation().getZ() + 0.5) + getPluginInstance().getManager().getRandomInRange(-1, 1)), 10, block.getBlockData());
+            block.getWorld().spawnParticle(Particle.BLOCK_DUST, ((block.getLocation().getX() + 0.5) + getPluginInstance().getManager().getRandomInRange(-0.5, 0.5)),
+                    ((block.getLocation().getY() + 0.5) + getPluginInstance().getManager().getRandomInRange(-0.5, 0.5)),
+                    ((block.getLocation().getZ() + 0.5) + getPluginInstance().getManager().getRandomInRange(-0.5, 0.5)), 5, block.getBlockData());
 
             Sound sound = Sound.BLOCK_METAL_PLACE;
             if (block.getType().name().contains("LOG") || block.getType().name().contains("WOOD")
@@ -432,21 +432,20 @@ public class Manager {
         FallingBlock fallingBlock;
         if (!getPluginInstance().getManager().isBlockDataVersion())
             fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), block.getType(), block.getData());
-        else
-            fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), blockState.getBlockData());
+        else fallingBlock = block.getWorld().spawnFallingBlock(block.getLocation().clone().add(0.5, 0, 0.5), blockState.getBlockData());
+        fallingBlock.setCustomName("PTG_FALLING_BLOCK");
+        fallingBlock.setCustomNameVisible(false);
         fallingBlock.setDropItem(false);
 
         if (randomizeOffset)
             fallingBlock.setVelocity(new Vector(getPluginInstance().getManager().getRandomInRange(-0.65, 0.65),
                     getPluginInstance().getManager().getRandomInRange(0.05, 0.7), getPluginInstance().getManager().getRandomInRange(-0.65, 0.65)));
-        fallingBlock.setCustomNameVisible(false);
-        fallingBlock.setCustomName("PTG_FALLING_BLOCK");
 
         if (hasNoGravityTemporarily) {
             fallingBlock.setGravity(false);
             fallingBlock.setVelocity(new Vector(0, 0, 0));
-            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), () -> fallingBlock.setGravity(true), getPluginInstance().getAdvancedConfig().getInt(
-                    "gravity-effect-delay"));
+            getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(), () -> fallingBlock.setGravity(true),
+                    getPluginInstance().getAdvancedConfig().getInt("gravity-effect-delay"));
         }
     }
 
@@ -555,11 +554,11 @@ public class Manager {
      *
      * @return The list of stored block states.
      */
-    public List<BlockState> getSavedBlockStates() {
+    public HashSet<BlockState> getSavedBlockStates() {
         return savedBlockStates;
     }
 
-    private void setSavedBlockStates(List<BlockState> savedBlockStates) {
+    private void setSavedBlockStates(HashSet<BlockState> savedBlockStates) {
         this.savedBlockStates = savedBlockStates;
     }
 

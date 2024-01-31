@@ -48,7 +48,7 @@ public class BlockRegenerationTask implements Runnable {
         if (regenerateEvent.isCancelled()) return;
 
         getBlockState().update(true, false);
-        getPluginInstance().getManager().playNaturalBlockPlaceEffect(getBlock());
+        getPluginInstance().getManager().playNaturalBlockPlaceEffect((!isPlacement() ? getBlockState().getBlock() : getBlock()));
 
         if (getBlockState() instanceof InventoryHolder) {
             if (!getPluginInstance().getConfig().getBoolean("container-restoration")) return;

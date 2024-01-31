@@ -71,8 +71,7 @@ place-removal-delay: 20
 # This list will act as a whitelist when the "place-removal" option is enabled and will ONLY remove the materials found in the list.
 # Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 # (NOTE: This list will be avoided if it is empty.)
-place-only-effected:
-  - "TORCH"
+place-only-effected: [ ]
 
 # This determines if block broken by the player will regenerate after a delay.
 break-regeneration: false
@@ -83,8 +82,7 @@ break-regeneration-delay: 20
 # This list is a whitelist and requires the "break-regeneration" option enabled. All materials in the list will regenerate after a delay to their original material.
 # Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 # (NOTE: This list will be avoided if it is empty. You may use the format: <material>:<delay> to set individual delays for specific materials)
-break-only-effected:
-  - "ORE:120"
+break-only-effected: [ ]
 
 # This will convert the "blocked-material-regeneration" into a whitelist from a blacklist.
 invert-bmr: false
@@ -101,9 +99,7 @@ world-blacklist:
   - "blocked_world"
 # This list should contain all materials that should be avoided like the black plague. Essentially these materials are safe from the plugins actions at all costs.
 # Materials: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
-avoided-materials:
-  - "BEDROCK"
-  - "OBSIDIAN"
+avoided-materials: [ ]
 
 # This determines whether to hook into CoreProtect.
 core-protect: false

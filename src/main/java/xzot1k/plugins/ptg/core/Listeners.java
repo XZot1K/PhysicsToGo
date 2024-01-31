@@ -33,6 +33,7 @@ import xzot1k.plugins.ptg.events.PhysicsActionEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Listeners implements Listener {
 
@@ -130,7 +131,7 @@ public class Listeners implements Listener {
 
         if (getPluginInstance().getConfig().getBoolean("place-removal")) {
             final BlockState blockState = e.getBlockReplacedState();
-            if (checkState(blockState, ActionType.PLACE)) return;
+            if (checkState(blockState, ActionType.PLACE) || isSaved(blockState)) return;
 
             if (!getPluginInstance().getManager().isWhitelistedPlaceMaterial(e.getBlock().getType())
                     || getPluginInstance().getManager().isAvoidedMaterial(e.getBlock().getType(), e.getBlock().getData()))
@@ -138,6 +139,7 @@ public class Listeners implements Listener {
 
             if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
                 getPluginInstance().getCoreProtectHook().logLocation(e.getBlockReplacedState().getLocation()); // log to core protect.
+
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
             getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
                     new BlockRegenerationTask(getPluginInstance(), e.getBlockReplacedState().getBlock(), blockState, true),
@@ -182,14 +184,17 @@ public class Listeners implements Listener {
 
         if (getPluginInstance().getConfig().getBoolean("break-regeneration")) {
             final BlockState blockState = e.getBlock().getState();
-            if (checkState(blockState, ActionType.BREAK)) return;
+            if (checkState(blockState, ActionType.BREAK) || isSaved(blockState)) return;
 
             final Pair<Boolean, Integer> wbmPair = getPluginInstance().getManager().isWhitelistedBreakMaterial(blockState.getType());
             if (wbmPair != null && (!wbmPair.getKey() || getPluginInstance().getManager().isAvoidedMaterial(blockState.getType(), blockState.getRawData()))) return;
 
             if (getPluginInstance().getCoreProtectHook() != null && getPluginInstance().getConfig().getBoolean("core-protect"))
                 getPluginInstance().getCoreProtectHook().logLocation(blockState.getLocation());
+
+
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
+
             if (!getPluginInstance().getConfig().getBoolean("break-drops")) {
                 e.setCancelled(true);
                 getPluginInstance().getManager().playNaturalBlockBreakEffect(e.getBlock());
@@ -202,10 +207,13 @@ public class Listeners implements Listener {
 
             final boolean containerRestore = getPluginInstance().getConfig().getBoolean("container-restoration"),
                     signRestore = getPluginInstance().getConfig().getBoolean("sign-restoration");
-            handleSpecialStateRetore(e.getBlock(), blockState, containerRestore, signRestore);
+            handleSpecialStateRestore(e.getBlock(), blockState, containerRestore, signRestore);
 
             if (wbmPair != null) getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
                     new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false), wbmPair.getValue());
+            else getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
+                    new BlockRegenerationTask(getPluginInstance(), e.getBlock(), blockState, false),
+                    getPluginInstance().getConfig().getInt("break-regeneration-delay"));
         }
     }
 
@@ -298,7 +306,7 @@ public class Listeners implements Listener {
             if ((!inverted && getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))
                     || (inverted && !getPluginInstance().getManager().isBlockedRegenMaterial(blockState.getType()))) continue;
 
-            handleSpecialStateRetore(block, blockState, containerRestore, signRestore);
+            handleSpecialStateRestore(block, blockState, containerRestore, signRestore);
 
             getPluginInstance().getManager().getSavedBlockStates().add(blockState);
             getPluginInstance().getServer().getScheduler().runTaskLater(getPluginInstance(),
@@ -324,7 +332,7 @@ public class Listeners implements Listener {
 
     // helper methods
     @SuppressWarnings("deprecation")
-    private void handleSpecialStateRetore(Block block, BlockState blockState, boolean containerRestore, boolean signRestore) {
+    private void handleSpecialStateRestore(Block block, BlockState blockState, boolean containerRestore, boolean signRestore) {
         if (blockState instanceof InventoryHolder && containerRestore) {
 
             if (!getPluginInstance().getManager().isDoubleChestPartnerStored(block)) {
@@ -362,13 +370,16 @@ public class Listeners implements Listener {
                 && blockStateOne.getZ() == blockStateTwo.getZ());
     }
 
+    private boolean isSaved(BlockState blockState) {
+        return getPluginInstance().getManager().getSavedBlockStates().parallelStream().anyMatch(state -> isSame(blockState, state));
+    }
+
     private boolean checkState(BlockState blockState, ActionType actionType) {
         final boolean stateOverride = getPluginInstance().getConfig().getBoolean("state-override");
-        for (BlockState bs : getPluginInstance().getManager().getSavedBlockStates())
-            if (isSame(blockState, bs)) {
-                if (!stateOverride) return false;
-                else break;
-            }
+
+        List<BlockState> states = getPluginInstance().getManager().getSavedBlockStates().parallelStream()
+                .filter(state -> isSame(blockState, state)).collect(Collectors.toList());
+        if (!states.isEmpty() && stateOverride) return false;
 
         PhysicsActionEvent actionEvent = new PhysicsActionEvent(getPluginInstance(), blockState, actionType);
         getPluginInstance().getServer().getPluginManager().callEvent(actionEvent);
